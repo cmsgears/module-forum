@@ -1,0 +1,20 @@
+{
+	"name": "cmsgears/module-forum",
+	"description": "The Forum Module for CMSGears. It can be used by the projects which require discussion forums.",
+	"homepage": "http://www.cmsgears.org",
+	"type": "package",
+	"keywords": [ "yii", "yii2", "cmsgears", "module", "forum" ],
+	"license": "GPLv3",
+	"support": {
+		"resources": "http://www.cmsgears.org/"
+	},
+	"autoload": {
+		"psr-4": {
+			"cmsgears\\forum\\": ""
+		}
+	},
+    "require": {
+        "php": ">=5.4.0",
+        "cmsgears/module-core": "*"
+    }
+}
