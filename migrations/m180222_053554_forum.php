@@ -1,8 +1,5 @@
 <?php
-use yii\db\Migration;
-
-class m180222_053554_forum extends Migration
-{
+class m180222_053554_forum extends \yii\db\Migration {
     // Public Variables
 
     public $fk;

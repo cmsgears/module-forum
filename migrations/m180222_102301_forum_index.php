@@ -1,11 +1,8 @@
 <?php
-use yii\db\Migration;
-
 /**
  * Class m180222_102301_forum_index
  */
-class m180222_102301_forum_index extends Migration
-{
+class m180222_102301_forum_index extends \yii\db\Migration {
     // Public Variables
 
     // Private Variables
