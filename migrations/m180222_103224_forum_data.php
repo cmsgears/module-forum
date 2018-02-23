@@ -91,6 +91,8 @@ class m180222_103224_forum_data extends \yii\db\Migration {
         $this->batchInsert( $this->prefix . 'core_role', $columns, $roles );
 
         $forumManagerRole   = Role::findBySlugType( 'forum-manager', CoreGlobal::TYPE_SYSTEM );
+        $adminRole          = Role::findBySlugType( 'admin', CoreGlobal::TYPE_SYSTEM );
+        $superAdminRole     = Role::findBySlugType( 'super-admin', CoreGlobal::TYPE_SYSTEM );
 
         // Permissions
 
@@ -101,16 +103,16 @@ class m180222_103224_forum_data extends \yii\db\Migration {
         ];
 
         $this->batchInsert( $this->prefix . 'core_permission', $columns, $permissions );
-
-        $adminPerm			= Permission::findBySlugType( 'admin', CoreGlobal::TYPE_SYSTEM );        
-        $forumPerm                      = Permission::findBySlugType( 'forum', CoreGlobal::TYPE_SYSTEM );
+    
+        $forumPerm          = Permission::findBySlugType( 'forum', CoreGlobal::TYPE_SYSTEM );
 
         // RBAC Mapping
-
         $columns = [ 'roleId', 'permissionId' ];
 
         $mappings = [
-                [ $forumManagerRole->id, $adminPerm->id ], [ $forumManagerRole->id, $forumPerm->id ]
+                [ $forumManagerRole->id, $forumPerm->id ],
+                [ $adminRole->id, $forumPerm->id ],
+                [ $superAdminRole->id, $forumPerm->id ]
         ];
 
         $this->batchInsert( $this->prefix . 'core_role_permission', $columns, $mappings );

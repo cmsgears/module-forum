@@ -1,9 +1,14 @@
 <?php
-namespace cmsgears\modules\forum\common\config;
+namespace cmsgears\forum\common\config;
 
 class ForumGlobal {
+    
+    // Parent Type
+    const TYPE_FORUM    = 'forum';
 
-	const CATEGORY_TYPE_FORUM		= 3001;
+    // Permissions -----------------------------------------------------
+    
+    const PERM_FORUM    = 'forum';
 }
 
 ?>
