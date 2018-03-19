@@ -18,15 +18,51 @@ class ForumGlobal {
 
 	// System Sites ---------------------------------------------------
 
-	const SITE_FORUM			= 'forum';
+	const SITE_FORUM	= 'forum';
+
+	// System Pages ---------------------------------------------------
 
 	// Grouping by type ------------------------------------------------
 
-    // Parent Type
-    const TYPE_FORUM    = 'forum';
+	const TYPE_FORUM		= 'forum';
+	const TYPE_FORUM_REPLY	= 'forum-reply';
 
-    // Permissions -----------------------------------------------------
+	// Templates -------------------------------------------------------
 
-    const PERM_FORUM    = 'forum';
+	// Config ----------------------------------------------------------
+
+	// Roles -----------------------------------------------------------
+
+	const ROLE_FORUM_ADMIN	= 'forum-admin';
+
+	// Permissions -----------------------------------------------------
+
+	// Forum
+	const PERM_FORUM_ADMIN		= 'admin-forum';
+
+	const PERM_TOPIC_MANAGE		= 'manage-topics';
+	const PERM_TOPIC_AUTHOR		= 'topic-author';
+
+	const PERM_TOPIC_VIEW		= 'view-topics';
+	const PERM_TOPIC_ADD		= 'add-topic';
+	const PERM_TOPIC_UPDATE		= 'update-topic';
+	const PERM_TOPIC_DELETE		= 'delete-topic';
+	const PERM_TOPIC_APPROVE	= 'approve-topic';
+	const PERM_TOPIC_PRINT		= 'print-topic';
+	const PERM_TOPIC_IMPORT		= 'import-topics';
+	const PERM_TOPIC_EXPORT		= 'export-topics';
+
+	// Model Attributes ------------------------------------------------
+
+	// Default Maps ----------------------------------------------------
+
+	// Messages --------------------------------------------------------
+
+	// Errors ----------------------------------------------------------
+
+	// Model Fields ----------------------------------------------------
+
+	// Generic Fields
+	const FIELD_TOPIC		= 'topicField';
 
 }
