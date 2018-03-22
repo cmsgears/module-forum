@@ -7,17 +7,17 @@
  * @copyright Copyright (c) 2015 VulpineCode Technologies Pvt. Ltd.
  */
 
-namespace cmsgears\forum\common\services\interfaces\entities;
+namespace cmsgears\forum\common\services\interfaces\resources;
 
 // CMG Imports
-use cmsgears\core\common\services\interfaces\base\IEntityService;
+use cmsgears\core\common\services\interfaces\base\IResourceService;
 
 /**
- * ITopicService declares methods specific to topic model.
+ * ITopicReplyService declares methods specific to topic reply.
  *
  * @since 1.0.0
  */
-interface ITopicService extends IEntityService {
+interface ITopicReplyService extends IResourceService {
 
 	// Data Provider ------
 

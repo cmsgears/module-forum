@@ -7,28 +7,23 @@
  * @copyright Copyright (c) 2015 VulpineCode Technologies Pvt. Ltd.
  */
 
-namespace cmsgears\forum\common\services\entities;
+namespace cmsgears\forum\common\services\resources;
 
 // CMG Imports
-use cmsgears\forum\common\config\ForumGlobal;
-
 use cmsgears\forum\common\models\base\ForumTables;
 
-use cmsgears\forum\common\services\interfaces\entities\ITopicService;
+use cmsgears\forum\common\services\interfaces\resources\ITopicReplyService;
 
-use cmsgears\core\common\services\base\EntityService;
+use cmsgears\core\common\services\base\MetaService;
 
-use cmsgears\core\common\services\traits\base\ApprovalTrait;
-use cmsgears\core\common\services\traits\base\NameTypeTrait;
-use cmsgears\core\common\services\traits\base\SlugTypeTrait;
 use cmsgears\core\common\services\traits\resources\DataTrait;
 
 /**
- * TopicService provide service methods of topic model.
+ * TopicReplyService provide service methods of topic reply.
  *
  * @since 1.0.0
  */
-class TopicService extends EntityService implements ITopicService {
+class TopicReplyService extends MetaService implements ITopicReplyService {
 
 	// Variables ---------------------------------------------------
 
@@ -38,13 +33,9 @@ class TopicService extends EntityService implements ITopicService {
 
 	// Public -----------------
 
-	public static $modelClass	= '\cmsgears\forum\common\models\entities\Topic';
+	public static $modelClass	= '\cmsgears\forum\common\models\resources\TopicReply';
 
-	public static $modelTable	= ForumTables::TABLE_TOPIC;
-
-	public static $typed		= true;
-
-	public static $parentType	= ForumGlobal::TYPE_FORUM;
+	public static $modelTable	= ForumTables::TABLE_TOPIC_REPLY;
 
 	// Protected --------------
 
@@ -58,10 +49,7 @@ class TopicService extends EntityService implements ITopicService {
 
 	// Traits ------------------------------------------------------
 
-    use ApprovalTrait;
 	use DataTrait;
-	use NameTypeTrait;
-	use SlugTypeTrait;
 
 	// Constructor and Initialisation ------------------------------
 
@@ -75,7 +63,7 @@ class TopicService extends EntityService implements ITopicService {
 
 	// CMG parent classes --------------------
 
-	// TopicService --------------------------
+	// TopicReplyService ---------------------
 
 	// Data Provider ------
 
@@ -89,63 +77,9 @@ class TopicService extends EntityService implements ITopicService {
 
 	// Update -------------
 
-    public function update( $model, $config = [] ) {
-
-		return parent::update( $model, [
-			'attributes' => [ 'name', 'description', 'status', 'title', 'content', 'data' ]
-		]);
-	}
-
 	// Delete -------------
 
 	// Bulk ---------------
-
-    protected function applyBulk( $model, $column, $action, $target, $config = [] ) {
-
-		switch( $column ) {
-
-            case 'status': {
-
-				switch( $action ) {
-
-					case 'active': {
-
-						$this->approve( $model );
-
-						// TODO: Trigger activate email
-
-						break;
-					}
-					case 'block': {
-
-						$this->block( $model );
-
-						// TODO: Trigger block email
-
-						break;
-					}
-				}
-
-				break;
-			}
-			case 'model': {
-
-				switch( $action ) {
-
-					case 'delete': {
-
-						$this->delete( $model );
-
-						Yii::$app->factory->get( 'activityService' )->deleteActivity( $model, self::$parentType );
-
-						break;
-					}
-				}
-
-				break;
-			}
-		}
-	}
 
 	// Notifications ------
 
@@ -157,7 +91,7 @@ class TopicService extends EntityService implements ITopicService {
 
 	// CMG parent classes --------------------
 
-	// TopicService --------------------------
+	// TopicReplyService ---------------------
 
 	// Data Provider ------
 
