@@ -50,6 +50,7 @@ class m180222_053554_forum extends Migration {
         // topic
 		$this->upTopic();
 		$this->upTopicMeta();
+		$this->upTopicFollower();
 
         // Reply
         $this->upReply();
@@ -98,12 +99,32 @@ class m180222_053554_forum extends Migration {
 			'name' => $this->string( Yii::$app->core->xLargeText )->notNull(),
 			'label' => $this->string( Yii::$app->core->xxLargeText )->notNull(),
 			'type' => $this->string( Yii::$app->core->mediumText ),
+			'active' => $this->boolean()->defaultValue( false ),
 			'valueType' => $this->string( Yii::$app->core->mediumText )->notNull()->defaultValue( Meta::VALUE_TYPE_TEXT ),
-			'value' => $this->text()
+			'value' => $this->text(),
+			'data' => $this->mediumText()
 		], $this->options );
 
 		// Index for column parent
 		$this->createIndex( 'idx_' . $this->prefix . 'topic_meta_parent', $this->prefix . 'forum_topic_meta', 'modelId' );
+	}
+
+	private function upTopicFollower() {
+
+        $this->createTable( $this->prefix . 'forum_topic_follower', [
+			'id' => $this->bigPrimaryKey( 20 ),
+			'userId' => $this->bigInteger( 20 )->notNull(),
+			'modelId' => $this->bigInteger( 20 )->notNull(),
+			'type' => $this->smallInteger( 6 )->defaultValue( 0 ),
+			'active' => $this->boolean()->notNull()->defaultValue( false ),
+			'createdAt' => $this->dateTime()->notNull(),
+			'modifiedAt' => $this->dateTime(),
+			'data' => $this->mediumText()
+        ], $this->options );
+
+        // Index for columns user and model
+		$this->createIndex( 'idx_' . $this->prefix . 'topic_follower_user', $this->prefix . 'forum_topic_follower', 'userId' );
+		$this->createIndex( 'idx_' . $this->prefix . 'topic_follower_parent', $this->prefix . 'forum_topic_follower', 'modelId' );
 	}
 
     private function upReply() {
@@ -153,6 +174,10 @@ class m180222_053554_forum extends Migration {
 		// Topic Meta
 		$this->addForeignKey( 'fk_' . $this->prefix . 'topic_meta_parent', $this->prefix . 'forum_topic_meta', 'modelId', $this->prefix . 'forum_topic', 'id', 'CASCADE' );
 
+		// Topic Follower
+        $this->addForeignKey( 'fk_' . $this->prefix . 'topic_follower_user', $this->prefix . 'forum_topic_follower', 'userId', $this->prefix . 'core_user', 'id', 'CASCADE' );
+		$this->addForeignKey( 'fk_' . $this->prefix . 'topic_follower_parent', $this->prefix . 'forum_topic_follower', 'modelId', $this->prefix . 'forum_topic', 'id', 'CASCADE' );
+
         // Reply
 		$this->addForeignKey( 'fk_' . $this->prefix . 'topic_reply_parent', $this->prefix . 'forum_topic_reply', 'topicId', $this->prefix . 'forum_topic', 'id', 'RESTRICT' );
 		$this->addForeignKey( 'fk_' . $this->prefix . 'topic_reply_base', $this->prefix . 'forum_topic_reply', 'baseId', $this->prefix . 'forum_topic_reply', 'id', 'RESTRICT' );
@@ -171,6 +196,7 @@ class m180222_053554_forum extends Migration {
 
         $this->dropTable( $this->prefix . 'forum_topic' );
 		$this->dropTable( $this->prefix . 'forum_topic_meta' );
+		$this->dropTable( $this->prefix . 'forum_topic_follower' );
         $this->dropTable( $this->prefix . 'forum_topic_reply' );
     }
 
@@ -183,6 +209,10 @@ class m180222_053554_forum extends Migration {
 
 		// Topic Meta
 		$this->dropForeignKey( 'fk_' . $this->prefix . 'topic_meta_parent', $this->prefix . 'forum_topic_meta' );
+
+		// Topic Follower
+        $this->dropForeignKey( 'fk_' . $this->prefix . 'topic_follower_user', $this->prefix . 'forum_topic_follower' );
+		$this->dropForeignKey( 'fk_' . $this->prefix . 'topic_follower_parent', $this->prefix . 'forum_topic_follower' );
 
         // Reply
 		$this->dropForeignKey( 'fk_' . $this->prefix . 'topic_reply_parent', $this->prefix . 'forum_topic_reply' );

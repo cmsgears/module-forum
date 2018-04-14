@@ -11,7 +11,7 @@ $siteId	= Yii::$app->core->siteId;
 ?>
 
 <?php if( $core->hasModule( 'forum' ) && $user->isPermitted( ForumGlobal::PERM_FORUM ) ) { ?>
-	<div id="sidebar-identity" class="collapsible-tab has-children <?= $parent === 'sidebar-forum' ? 'active' : null ?>">
+	<div id="sidebar-forum" class="collapsible-tab has-children <?= $parent === 'sidebar-forum' ? 'active' : null ?>">
             <span class="marker"></span>
             <div class="tab-header">
                 <div class="tab-icon"><span class="cmti cmti-comment"></span></div>
@@ -20,7 +20,7 @@ $siteId	= Yii::$app->core->siteId;
             <div class="tab-content clear <?= $parent === 'sidebar-forum' ? 'expanded visible' : null ?>">
                 <ul>
                     <li class='<?= $child === 'topic' ? 'active' : null ?>'><?= Html::a( "Forum Topics", ['/forum/topic/all'] ) ?></li>
-                    <li class='<?= $child === 'forum-category' ? 'active' : null ?>'><?= Html::a( "Forum Categories", ['/forum/topic/category/all'] ) ?></li>                    
+                    <li class='<?= $child === 'forum-category' ? 'active' : null ?>'><?= Html::a( "Forum Categories", ['/forum/topic/category/all'] ) ?></li>
                 </ul>
             </div>
 	</div>
