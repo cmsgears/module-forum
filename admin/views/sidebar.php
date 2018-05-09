@@ -10,7 +10,7 @@ $user	= Yii::$app->user->getIdentity();
 $siteId	= Yii::$app->core->siteId;
 ?>
 
-<?php if( $core->hasModule( 'forum' ) && $user->isPermitted( ForumGlobal::PERM_FORUM ) ) { ?>
+<?php if( $core->hasModule( 'forum' ) && $user->isPermitted( ForumGlobal::PERM_FORUM_ADMIN) ) { ?>
 	<div id="sidebar-forum" class="collapsible-tab has-children <?= $parent === 'sidebar-forum' ? 'active' : null ?>">
             <span class="marker"></span>
             <div class="tab-header">
