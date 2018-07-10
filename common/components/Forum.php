@@ -59,7 +59,7 @@ class Forum extends Component {
 	public function registerComponents() {
 
 		// Init system services
-		$this->initSystemServices();
+		//$this->initSystemServices();
 
 		// Register services
 		$this->registerResourceServices();
