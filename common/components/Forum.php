@@ -9,12 +9,11 @@
 
 namespace cmsgears\forum\common\components;
 
-// Yii Imports
-use Yii;
-use yii\base\Component;
+// CMG Imports
+use cmsgears\core\common\base\Component;
 
 /**
- * Forum component register the services provided by Forum Module.
+ * Forum component initialises the Forum Module.
  *
  * @since 1.0.0
  */
@@ -30,17 +29,6 @@ class Forum extends Component {
 
 	// Constructor and Initialisation ------------------------------
 
-	/**
-	 * Initialize the services.
-	 */
-	public function init() {
-
-		parent::init();
-
-		// Register components and objects
-		$this->registerComponents();
-	}
-
 	// Instance methods --------------------------------------------
 
 	// Yii parent classes --------------------
@@ -48,68 +36,5 @@ class Forum extends Component {
 	// CMG parent classes --------------------
 
 	// Forum ---------------------------------
-
-	// Properties ----------------
-
-	// Components and Objects ----
-
-	/**
-	 * Register the services.
-	 */
-	public function registerComponents() {
-
-		// Init system services
-		//$this->initSystemServices();
-
-		// Register services
-		$this->registerResourceServices();
-		$this->registerEntityServices();
-
-		// Init services
-		$this->initResourceServices();
-		$this->initEntityServices();
-	}
-
-	/**
-	 * Registers resource services.
-	 */
-	public function registerResourceServices() {
-
-		$factory = Yii::$app->factory->getContainer();
-
-		$factory->set( 'cmsgears\forum\common\services\interfaces\resources\ITopicMetaService', 'cmsgears\forum\common\services\resources\TopicMetaService' );
-		$factory->set( 'cmsgears\forum\common\services\interfaces\resources\ITopicReplyService', 'cmsgears\forum\common\services\resources\TopicReplyService' );
-	}
-
-	/**
-	 * Registers entity services.
-	 */
-	public function registerEntityServices() {
-
-		$factory = Yii::$app->factory->getContainer();
-
-		$factory->set( 'cmsgears\forum\common\services\interfaces\entities\ITopicService', 'cmsgears\forum\common\services\entities\TopicService' );
-	}
-
-	/**
-	 * Initialize resource services.
-	 */
-	public function initResourceServices() {
-
-		$factory = Yii::$app->factory->getContainer();
-
-		$factory->set( 'topicMetaService', 'cmsgears\forum\common\services\resources\TopicMetaService' );
-		$factory->set( 'topicReplyService', 'cmsgears\forum\common\services\resources\TopicReplyService' );
-	}
-
-	/**
-	 * Initialize entity services.
-	 */
-	public function initEntityServices() {
-
-		$factory = Yii::$app->factory->getContainer();
-
-		$factory->set( 'topicService', 'cmsgears\forum\common\services\entities\TopicService' );
-	}
 
 }
