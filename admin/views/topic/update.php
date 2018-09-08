@@ -8,14 +8,13 @@ use cmsgears\forum\common\config\ForumGlobal;
 
 use cmsgears\core\common\widgets\Editor;
 
-use cmsgears\widgets\category\CategoryAuto;
+use cmsgears\widgets\category\CategorySuggest;
 use cmsgears\widgets\tag\TagMapper;
 
 $coreProperties = $this->context->getCoreProperties();
 $this->title 	= 'Update Topic | ' . $coreProperties->getSiteTitle();
 $returnUrl		= $this->context->returnUrl;
-
-$typeForum      = ForumGlobal::TYPE_FORUM;
+$apixBase		= $this->context->apixBase;
 
 Editor::widget( [ 'selector' => '.content-editor', 'loadAssets' => true, 'fonts' => 'site', 'config' => [ 'controls' => 'mini' ] ] );
 ?>
@@ -69,20 +68,18 @@ Editor::widget( [ 'selector' => '.content-editor', 'loadAssets' => true, 'fonts'
 
 		<div class="filler-height filler-height-medium"></div>
 		<?php ActiveForm::end(); ?>
-        
+
         <div class="row max-cols-100">
 			<div class="box box-crud colf colf15x7">
 				<div class="box-header">
 					<div class="box-header-title">Categories</div>
 				</div>
 				<div class="box-content padding padding-small">
-					<?= CategoryAuto::widget([
-						'options' => [ 'class' => 'box-mapper-auto' ],
-						'type' => $typeForum,
-						'model' => $model, 'app' => 'category',
-						'mapActionUrl' => "forum/topic/assign-category?slug=$model->slug&type=".$typeForum,
-						'deleteActionUrl' => "forum/topic/remove-category?slug=$model->slug&type=".$typeForum
-					]) ?>
+					<?= CategorySuggest::widget([
+						'model' => $model, 'type' => CmnGlobal::TYPE_GROUP,
+						'mapActionUrl' => "$apixBase/assign-category?slug=$model->slug&type=$model->type",
+						'deleteActionUrl' => "$apixBase/remove-category?slug=$model->slug&type=$model->type"
+					])?>
 				</div>
 			</div>
 			<div class="colf colf15"></div>
@@ -92,11 +89,9 @@ Editor::widget( [ 'selector' => '.content-editor', 'loadAssets' => true, 'fonts'
 				</div>
 				<div class="box-content padding padding-small">
 					<?= TagMapper::widget([
-						'options' => [ 'id' => 'box-tag-mapper', 'class' => 'box-tag-mapper' ],
-						'loadAssets' => true,
-						'model' => $model, 'app' => 'category',
-						'mapActionUrl' => "forum/topic/assign-tags?slug=$model->slug&type=".$typeForum,
-						'deleteActionUrl' => "forum/topic/remove-tag?slug=$model->slug&type=".$typeForum
+						'model' => $model,
+						'mapActionUrl' => "$apixBase/assign-tags?slug=$model->slug&type=$model->type",
+						'deleteActionUrl' => "$apixBase/remove-tag?slug=$model->slug&type=$model->type"
 					])?>
 				</div>
 			</div>
