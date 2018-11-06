@@ -143,24 +143,24 @@ class m180222_102221_forum_data extends Migration {
 		$hierarchy = [
 			// Topic Manager - Organization, Approver
 			[ null, null, $topicManagerPerm->id, CoreGlobal::TYPE_PERMISSION, 1, 18 ],
-			[ $topicManagerPerm->id, $vTopicsPerm->id, $topicManagerPerm->id, CoreGlobal::TYPE_PERMISSION, 2, 17 ],
-			[ $topicManagerPerm->id, $aTopicPerm->id, $topicManagerPerm->id, CoreGlobal::TYPE_PERMISSION, 3, 16 ],
-			[ $topicManagerPerm->id, $uTopicPerm->id, $topicManagerPerm->id, CoreGlobal::TYPE_PERMISSION, 4, 15 ],
-			[ $topicManagerPerm->id, $dTopicPerm->id, $topicManagerPerm->id, CoreGlobal::TYPE_PERMISSION, 5, 14 ],
-			[ $topicManagerPerm->id, $apTopicPerm->id, $topicManagerPerm->id, CoreGlobal::TYPE_PERMISSION, 6, 13 ],
-			[ $topicManagerPerm->id, $pTopicPerm->id, $topicManagerPerm->id, CoreGlobal::TYPE_PERMISSION, 7, 12 ],
-			[ $topicManagerPerm->id, $iTopicsPerm->id, $topicManagerPerm->id, CoreGlobal::TYPE_PERMISSION, 8, 11 ],
-			[ $topicManagerPerm->id, $eTopicsPerm->id, $topicManagerPerm->id, CoreGlobal::TYPE_PERMISSION, 9, 10 ],
+			[ $topicManagerPerm->id, $vTopicsPerm->id, $topicManagerPerm->id, CoreGlobal::TYPE_PERMISSION, 2, 3 ],
+			[ $topicManagerPerm->id, $aTopicPerm->id, $topicManagerPerm->id, CoreGlobal::TYPE_PERMISSION, 4, 5 ],
+			[ $topicManagerPerm->id, $uTopicPerm->id, $topicManagerPerm->id, CoreGlobal::TYPE_PERMISSION, 6, 7 ],
+			[ $topicManagerPerm->id, $dTopicPerm->id, $topicManagerPerm->id, CoreGlobal::TYPE_PERMISSION, 8, 9 ],
+			[ $topicManagerPerm->id, $apTopicPerm->id, $topicManagerPerm->id, CoreGlobal::TYPE_PERMISSION, 10, 11 ],
+			[ $topicManagerPerm->id, $pTopicPerm->id, $topicManagerPerm->id, CoreGlobal::TYPE_PERMISSION, 12, 13 ],
+			[ $topicManagerPerm->id, $iTopicsPerm->id, $topicManagerPerm->id, CoreGlobal::TYPE_PERMISSION, 14, 15 ],
+			[ $topicManagerPerm->id, $eTopicsPerm->id, $topicManagerPerm->id, CoreGlobal::TYPE_PERMISSION, 16, 17 ],
 
 			// Topic Author- Individual
 			[ null, null, $topicAuthorPerm->id, CoreGlobal::TYPE_PERMISSION, 1, 16 ],
-			[ $topicAuthorPerm->id, $vTopicsPerm->id, $topicAuthorPerm->id, CoreGlobal::TYPE_PERMISSION, 2, 15 ],
-			[ $topicAuthorPerm->id, $aTopicPerm->id, $topicAuthorPerm->id, CoreGlobal::TYPE_PERMISSION, 3, 14 ],
-			[ $topicAuthorPerm->id, $uTopicPerm->id, $topicAuthorPerm->id, CoreGlobal::TYPE_PERMISSION, 4, 13 ],
-			[ $topicAuthorPerm->id, $dTopicPerm->id, $topicAuthorPerm->id, CoreGlobal::TYPE_PERMISSION, 5, 12 ],
-			[ $topicAuthorPerm->id, $pTopicPerm->id, $topicAuthorPerm->id, CoreGlobal::TYPE_PERMISSION, 6, 11 ],
-			[ $topicAuthorPerm->id, $iTopicsPerm->id, $topicAuthorPerm->id, CoreGlobal::TYPE_PERMISSION, 7, 10 ],
-			[ $topicAuthorPerm->id, $eTopicsPerm->id, $topicAuthorPerm->id, CoreGlobal::TYPE_PERMISSION, 8, 9 ]
+			[ $topicAuthorPerm->id, $vTopicsPerm->id, $topicAuthorPerm->id, CoreGlobal::TYPE_PERMISSION, 2, 3 ],
+			[ $topicAuthorPerm->id, $aTopicPerm->id, $topicAuthorPerm->id, CoreGlobal::TYPE_PERMISSION, 4, 5 ],
+			[ $topicAuthorPerm->id, $uTopicPerm->id, $topicAuthorPerm->id, CoreGlobal::TYPE_PERMISSION, 6, 7 ],
+			[ $topicAuthorPerm->id, $dTopicPerm->id, $topicAuthorPerm->id, CoreGlobal::TYPE_PERMISSION, 8, 9 ],
+			[ $topicAuthorPerm->id, $pTopicPerm->id, $topicAuthorPerm->id, CoreGlobal::TYPE_PERMISSION, 10, 11 ],
+			[ $topicAuthorPerm->id, $iTopicsPerm->id, $topicAuthorPerm->id, CoreGlobal::TYPE_PERMISSION, 12, 13 ],
+			[ $topicAuthorPerm->id, $eTopicsPerm->id, $topicAuthorPerm->id, CoreGlobal::TYPE_PERMISSION, 14, 15 ]
 		];
 
 		$this->batchInsert( $this->prefix . 'core_model_hierarchy', $columns, $hierarchy );
