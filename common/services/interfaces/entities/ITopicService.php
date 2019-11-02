@@ -10,14 +10,15 @@
 namespace cmsgears\forum\common\services\interfaces\entities;
 
 // CMG Imports
-use cmsgears\core\common\services\interfaces\base\IEntityService;
+use cmsgears\cms\common\services\interfaces\base\IContentService;
+use cmsgears\core\common\services\interfaces\resources\IMeta;
 
 /**
  * ITopicService declares methods specific to topic model.
  *
  * @since 1.0.0
  */
-interface ITopicService extends IEntityService {
+interface ITopicService extends IContentService, IMeta {
 
 	// Data Provider ------
 

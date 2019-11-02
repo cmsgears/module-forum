@@ -1,13 +1,24 @@
 <?php
-namespace cmsgears\forum\common\components;
+/**
+ * This file is part of CMSGears Framework. Please view License file distributed
+ * with the source code for license details.
+ *
+ * @link https://www.cmsgears.org/
+ * @copyright Copyright (c) 2015 VulpineCode Technologies Pvt. Ltd.
+ */
 
-// Yii Imports
-use yii\base\Component;
+namespace cmsgears\forum\common\components;
 
 // CMG Imports
 use cmsgears\forum\common\config\ForumGlobal;
 
-class MessageSource extends Component {
+/**
+ * MessageSource stores and provide the messages and message templates available in
+ * Forum Module.
+ *
+ * @since 1.0.0
+ */
+class MessageSource extends \cmsgears\core\common\base\MessageSource {
 
 	// Variables ---------------------------------------------------
 
@@ -33,10 +44,5 @@ class MessageSource extends Component {
 	// CMG parent classes --------------------
 
 	// MessageSource -------------------------
-
-	public function getMessage( $messageKey, $params = [], $language = null ) {
-
-		return $this->messageDb[ $messageKey ];
-	}
 
 }

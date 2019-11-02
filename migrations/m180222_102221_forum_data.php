@@ -9,13 +9,13 @@
 
 // CMG Imports
 use cmsgears\core\common\config\CoreGlobal;
-
-use cmsgears\core\common\base\Migration;
+use cmsgears\cms\common\config\CmsGlobal;
 
 use cmsgears\core\common\models\entities\Site;
 use cmsgears\core\common\models\entities\User;
 use cmsgears\core\common\models\entities\Role;
 use cmsgears\core\common\models\entities\Permission;
+use cmsgears\cms\common\models\entities\Page;
 
 use cmsgears\core\common\utilities\DateUtil;
 
@@ -24,7 +24,7 @@ use cmsgears\core\common\utilities\DateUtil;
  *
  * @since 1.0.0
  */
-class m180222_102221_forum_data extends Migration {
+class m180222_102221_forum_data extends \cmsgears\core\common\base\Migration {
 
 	// Public Variables
 
@@ -39,7 +39,7 @@ class m180222_102221_forum_data extends Migration {
 	public function init() {
 
 		// Table prefix
-		$this->prefix	= Yii::$app->migration->cmgPrefix;
+		$this->prefix = Yii::$app->migration->cmgPrefix;
 
 		$this->site		= Site::findBySlug( CoreGlobal::SITE_MAIN );
 		$this->master	= User::findByUsername( Yii::$app->migration->getSiteMaster() );
@@ -54,6 +54,9 @@ class m180222_102221_forum_data extends Migration {
 
 		// Create newsletter permission groups and CRUD permissions
 		$this->insertTopicPermissions();
+
+		// Init system pages
+		$this->insertSystemPages();
     }
 
 	private function insertRolePermission() {
@@ -68,9 +71,9 @@ class m180222_102221_forum_data extends Migration {
 
 		$this->batchInsert( $this->prefix . 'core_role', $columns, $roles );
 
-		$superAdminRole		= Role::findBySlugType( 'super-admin', CoreGlobal::TYPE_SYSTEM );
-		$adminRole			= Role::findBySlugType( 'admin', CoreGlobal::TYPE_SYSTEM );
-		$forumAdminRole		= Role::findBySlugType( 'forum-admin', CoreGlobal::TYPE_SYSTEM );
+		$superAdminRole	= Role::findBySlugType( 'super-admin', CoreGlobal::TYPE_SYSTEM );
+		$adminRole		= Role::findBySlugType( 'admin', CoreGlobal::TYPE_SYSTEM );
+		$forumAdminRole	= Role::findBySlugType( 'forum-admin', CoreGlobal::TYPE_SYSTEM );
 
 		// Permissions
 
@@ -109,7 +112,7 @@ class m180222_102221_forum_data extends Migration {
 			[ $this->master->id, $this->master->id, 'Manage Topics', 'manage-topics', CoreGlobal::TYPE_SYSTEM, NULL, true, 'The permission manage newsletters allows user to manage newsletters from website.', DateUtil::getDateTime(), DateUtil::getDateTime() ],
 			[ $this->master->id, $this->master->id, 'Topic Author', 'topic-author', CoreGlobal::TYPE_SYSTEM, NULL, true, 'The permission newsletter author allows user to perform crud operations of newsletter belonging to respective author from website.', DateUtil::getDateTime(), DateUtil::getDateTime() ],
 
-			// Newsletter Permissions - Hard Coded - Website - Individual, Organization
+			// Topic Permissions - Hard Coded - Website - Individual, Organization
 			[ $this->master->id, $this->master->id, 'View Topics', 'view-topics', CoreGlobal::TYPE_SYSTEM, NULL, false, 'The permission view topics allows users to view their topics from website.', DateUtil::getDateTime(), DateUtil::getDateTime() ],
 			[ $this->master->id, $this->master->id, 'Add Topic', 'add-topic', CoreGlobal::TYPE_SYSTEM, NULL, false, 'The permission add topic allows users to create topic from website.', DateUtil::getDateTime(), DateUtil::getDateTime() ],
 			[ $this->master->id, $this->master->id, 'Update Topic', 'update-topic', CoreGlobal::TYPE_SYSTEM, NULL, false, 'The permission update topic allows users to update topic from website.', DateUtil::getDateTime(), DateUtil::getDateTime() ],
@@ -164,6 +167,30 @@ class m180222_102221_forum_data extends Migration {
 		];
 
 		$this->batchInsert( $this->prefix . 'core_model_hierarchy', $columns, $hierarchy );
+	}
+
+	private function insertSystemPages() {
+
+		$columns = [ 'siteId', 'createdBy', 'modifiedBy', 'name', 'slug', 'type', 'icon', 'title', 'status', 'visibility', 'order', 'featured', 'comments', 'createdAt', 'modifiedAt' ];
+
+		$pages	= [
+			// Forum Page
+			[ $this->site->id, $this->master->id, $this->master->id, 'Forum', 'forum', CmsGlobal::TYPE_PAGE, null, null, Page::STATUS_ACTIVE, Page::VISIBILITY_PUBLIC, 0, false, false, DateUtil::getDateTime(), DateUtil::getDateTime() ]
+		];
+
+		$this->batchInsert( $this->prefix . 'cms_page', $columns, $pages );
+
+		$summary = "Lorem ipsum is a pseudo-Latin text used in web design, typography, layout, and printing in place of English to emphasise design elements over content. It\'s also called placeholder (or filler) text. It\'s a convenient tool for mock-ups. It helps to outline the visual elements of a document or presentation, eg typography, font, or layout. Lorem ipsum is mostly a part of a Latin text by the classical author and philosopher Cicero.";
+		$content = "Lorem ipsum is a pseudo-Latin text used in web design, typography, layout, and printing in place of English to emphasise design elements over content. It\'s also called placeholder (or filler) text. It\'s a convenient tool for mock-ups. It helps to outline the visual elements of a document or presentation, eg typography, font, or layout. Lorem ipsum is mostly a part of a Latin text by the classical author and philosopher Cicero.";
+
+		$columns = [ 'parentId', 'parentType', 'seoName', 'seoDescription', 'seoKeywords', 'seoRobot', 'summary', 'content', 'publishedAt' ];
+
+		$pages	= [
+			// Forum Page
+			[ Page::findBySlugType( 'forum', CmsGlobal::TYPE_PAGE )->id, CmsGlobal::TYPE_PAGE, null, null, null, null, $summary, $content, DateUtil::getDateTime() ]
+		];
+
+		$this->batchInsert( $this->prefix . 'cms_model_content', $columns, $pages );
 	}
 
     public function down() {

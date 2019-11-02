@@ -7,21 +7,18 @@
  * @copyright Copyright (c) 2015 VulpineCode Technologies Pvt. Ltd.
  */
 
-namespace cmsgears\forum\common\services\resources;
+namespace cmsgears\forum\common\models\mappers;
 
 // CMG Imports
 use cmsgears\forum\common\models\base\ForumTables;
-
-use cmsgears\forum\common\services\interfaces\resources\ITopicMetaService;
-
-use cmsgears\core\common\services\base\MetaService;
+use cmsgears\forum\common\models\entities\Topic;
 
 /**
- * TopicMetaSerivce provide service methods of topic meta.
+ * TopicFollower represents interest of user in topic.
  *
- * @since 1.0.0
+ * @inheritdoc
  */
-class TopicMetaSerivce extends MetaService implements ITopicMetaService {
+class TopicFollower extends \cmsgears\core\common\models\base\Follower {
 
 	// Variables ---------------------------------------------------
 
@@ -30,10 +27,6 @@ class TopicMetaSerivce extends MetaService implements ITopicMetaService {
 	// Constants --------------
 
 	// Public -----------------
-
-	public static $modelClass	= '\cmsgears\forum\common\models\resources\TopicMeta';
-
-	public static $modelTable	= ForumTables::TABLE_TOPIC_META;
 
 	// Protected --------------
 
@@ -51,60 +44,58 @@ class TopicMetaSerivce extends MetaService implements ITopicMetaService {
 
 	// Instance methods --------------------------------------------
 
+	// Yii interfaces ------------------------
+
 	// Yii parent classes --------------------
 
 	// yii\base\Component -----
+
+	// yii\base\Model ---------
 
 	// CMG interfaces ------------------------
 
 	// CMG parent classes --------------------
 
-	// TopicMetaSerivce ----------------------
+	// Validators ----------------------------
 
-	// Data Provider ------
+	// TopicFollower -------------------------
 
-	// Read - Lists ----
+	/**
+	 * Return corresponding group.
+	 *
+	 * @return \cmsgears\forum\common\models\entities\Topic
+	 */
+	public function getParent() {
 
-	// Read - Maps -----
-
-	// Read - Others ---
-
-	// Create -------------
-
-	// Update -------------
-
-	// Delete -------------
-
-	// Bulk ---------------
-
-	// Notifications ------
-
-	// Cache --------------
-
-	// Additional ---------
+		return $this->hasOne( Topic::class, [ 'id' => 'parentId' ] );
+	}
 
 	// Static Methods ----------------------------------------------
 
+	// Yii parent classes --------------------
+
+	// yii\db\ActiveRecord ----
+
+    /**
+     * @inheritdoc
+     */
+	public static function tableName() {
+
+		return OrgTables::getTableName( ForumTables::TABLE_TOPIC_FOLLOWER );
+	}
+
 	// CMG parent classes --------------------
 
-	// TopicMetaSerivce ----------------------
+	// TopicFollower -------------------------
 
-	// Data Provider ------
+	// Read - Query -----------
 
-	// Read ---------------
+	// Read - Find ------------
 
-	// Read - Models ---
+	// Create -----------------
 
-	// Read - Lists ----
+	// Update -----------------
 
-	// Read - Maps -----
-
-	// Read - Others ---
-
-	// Create -------------
-
-	// Update -------------
-
-	// Delete -------------
+	// Delete -----------------
 
 }

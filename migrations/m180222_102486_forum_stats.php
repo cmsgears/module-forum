@@ -8,8 +8,6 @@
  */
 
 // CMG Imports
-use cmsgears\core\common\base\Migration;
-
 use cmsgears\core\common\models\resources\Stats;
 use cmsgears\forum\common\models\base\ForumTables;
 
@@ -19,7 +17,7 @@ use cmsgears\forum\common\models\base\ForumTables;
  *
  * @since 1.0.0
  */
-class m180222_102486_forum_stats extends Migration {
+class m180222_102486_forum_stats extends \cmsgears\core\common\base\Migration {
 
 	// Public Variables
 
@@ -32,10 +30,10 @@ class m180222_102486_forum_stats extends Migration {
 	public function init() {
 
 		// Table prefix
-		$this->prefix		= Yii::$app->migration->cmgPrefix;
+		$this->prefix = Yii::$app->migration->cmgPrefix;
 
 		// Get the values via config
-		$this->options		= Yii::$app->migration->getTableOptions();
+		$this->options = Yii::$app->migration->getTableOptions();
 
 		// Default collation
 		if( $this->db->driverName === 'mysql' ) {
@@ -57,6 +55,7 @@ class m180222_102486_forum_stats extends Migration {
 		$tableData	= [
 			[ $this->prefix . 'forum_topic', 'rows', 0 ],
 			[ $this->prefix . 'forum_topic_meta', 'rows', 0 ],
+			[ $this->prefix . 'forum_topic_follower', 'rows', 0 ],
 			[ $this->prefix . 'forum_topic_reply', 'rows', 0 ]
 		];
 
@@ -67,6 +66,7 @@ class m180222_102486_forum_stats extends Migration {
 
 		Stats::deleteByTableName( ForumTables::getTableName( ForumTables::TABLE_TOPIC ) );
 		Stats::deleteByTableName( ForumTables::getTableName( ForumTables::TABLE_TOPIC_META ) );
+		Stats::deleteByTableName( ForumTables::getTableName( ForumTables::TABLE_TOPIC_FOLLOWER ) );
 		Stats::deleteByTableName( ForumTables::getTableName( ForumTables::TABLE_TOPIC_REPLY ) );
 	}
 

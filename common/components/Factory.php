@@ -12,15 +12,12 @@ namespace cmsgears\forum\common\components;
 // Yii Imports
 use Yii;
 
-// CMG Imports
-use cmsgears\core\common\base\Component;
-
 /**
  * The Forum Factory component initialise the services available in Forum Module.
  *
  * @since 1.0.0
  */
-class Factory extends Component {
+class Factory extends \cmsgears\core\common\base\Component {
 
 	// Global -----------------
 
@@ -54,12 +51,14 @@ class Factory extends Component {
 	public function registerServices() {
 
 		$this->registerResourceServices();
+		$this->registerMapperServices();
 		$this->registerEntityServices();
 	}
 
 	public function registerServiceAlias() {
 
 		$this->registerResourceAliases();
+		$this->registerMapperAliases();
 		$this->registerEntityAliases();
 	}
 
@@ -71,7 +70,16 @@ class Factory extends Component {
 		$factory = Yii::$app->factory->getContainer();
 
 		$factory->set( 'cmsgears\forum\common\services\interfaces\resources\ITopicMetaService', 'cmsgears\forum\common\services\resources\TopicMetaService' );
-		$factory->set( 'cmsgears\forum\common\services\interfaces\resources\ITopicReplyService', 'cmsgears\forum\common\services\resources\TopicReplyService' );
+	}
+
+	/**
+	 * Registers mapper services.
+	 */
+	public function registerMapperServices() {
+
+		$factory = Yii::$app->factory->getContainer();
+
+		$factory->set( 'cmsgears\forum\common\services\interfaces\mappers\ITopicFollowerService', 'cmsgears\forum\common\services\mappers\TopicFollowerService' );
 	}
 
 	/**
@@ -92,7 +100,16 @@ class Factory extends Component {
 		$factory = Yii::$app->factory->getContainer();
 
 		$factory->set( 'topicMetaService', 'cmsgears\forum\common\services\resources\TopicMetaService' );
-		$factory->set( 'topicReplyService', 'cmsgears\forum\common\services\resources\TopicReplyService' );
+	}
+
+	/**
+	 * Registers mapper aliases.
+	 */
+	public function registerMapperAliases() {
+
+		$factory = Yii::$app->factory->getContainer();
+
+		$factory->set( 'topicFollowerService', 'cmsgears\forum\common\services\mappers\TopicFollowerService' );
 	}
 
 	/**

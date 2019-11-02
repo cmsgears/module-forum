@@ -7,9 +7,6 @@
  * @copyright Copyright (c) 2015 VulpineCode Technologies Pvt. Ltd.
  */
 
-// CMG Imports
-use cmsgears\core\common\base\Migration;
-
 /**
  * The newsletter index migration inserts the recommended indexes for better performance. It
  * also list down other possible index commented out. These indexes can be created using
@@ -17,7 +14,7 @@ use cmsgears\core\common\base\Migration;
  *
  * @since 1.0.0
  */
-class m180222_102301_forum_index extends Migration {
+class m180222_102301_forum_index extends \cmsgears\core\common\base\Migration {
 
 	// Public Variables
 

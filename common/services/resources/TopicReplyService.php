@@ -9,21 +9,30 @@
 
 namespace cmsgears\forum\common\services\resources;
 
+// Yii Imports
+use Yii;
+use yii\data\Sort;
+use yii\helpers\ArrayHelper;
+
 // CMG Imports
-use cmsgears\forum\common\models\base\ForumTables;
+use cmsgears\core\common\config\CoreGlobal;
+use cmsgears\forum\common\config\ForumGlobal;
+
+use cmsgears\forum\common\models\resources\TopicReply;
 
 use cmsgears\forum\common\services\interfaces\resources\ITopicReplyService;
 
-use cmsgears\core\common\services\base\MetaService;
-
 use cmsgears\core\common\services\traits\resources\DataTrait;
+use cmsgears\core\common\services\traits\mappers\FileTrait;
+
+use cmsgears\core\common\utilities\DateUtil;
 
 /**
  * TopicReplyService provide service methods of topic reply.
  *
  * @since 1.0.0
  */
-class TopicReplyService extends MetaService implements ITopicReplyService {
+class TopicReplyService extends \cmsgears\core\common\services\base\ResourceService implements ITopicReplyService {
 
 	// Variables ---------------------------------------------------
 
@@ -33,9 +42,9 @@ class TopicReplyService extends MetaService implements ITopicReplyService {
 
 	// Public -----------------
 
-	public static $modelClass	= '\cmsgears\forum\common\models\resources\TopicReply';
+	public static $modelClass = '\cmsgears\forum\common\models\resources\TopicReply';
 
-	public static $modelTable	= ForumTables::TABLE_TOPIC_REPLY;
+	public static $parentType = ForumGlobal::TYPE_TOPIC_REPLY;
 
 	// Protected --------------
 
@@ -45,13 +54,25 @@ class TopicReplyService extends MetaService implements ITopicReplyService {
 
 	// Protected --------------
 
+	protected $fileService;
+	protected $modelFileService;
+
 	// Private ----------------
 
 	// Traits ------------------------------------------------------
 
 	use DataTrait;
+	use FileTrait;
 
 	// Constructor and Initialisation ------------------------------
+
+	public function init() {
+
+		parent::init();
+
+		$this->fileService		= Yii::$app->factory->get( 'fileService' );
+		$this->modelFileService	= Yii::$app->factory->get( 'modelFileService' );
+	}
 
 	// Instance methods --------------------------------------------
 
@@ -67,6 +88,219 @@ class TopicReplyService extends MetaService implements ITopicReplyService {
 
 	// Data Provider ------
 
+	public function getPage( $config = [] ) {
+
+		$modelClass	= static::$modelClass;
+		$modelTable	= $this->getModelTable();
+
+		// Sorting ----------
+
+		$sort = new Sort([
+			'attributes' => [
+				'id' => [
+					'asc' => [ "$modelTable.id" => SORT_ASC ],
+					'desc' => [ "$modelTable.id" => SORT_DESC ],
+					'default' => SORT_DESC,
+					'label' => 'Id'
+				],
+	            'user' => [
+					'asc' => [ "creator.name" => SORT_ASC ],
+					'desc' => [ "creator.name" => SORT_DESC ],
+					'default' => SORT_DESC,
+	                'label' => 'User'
+	            ],
+				'name' => [
+					'asc' => [ "$modelTable.name" => SORT_ASC ],
+					'desc' => [ "$modelTable.name" => SORT_DESC ],
+					'default' => SORT_DESC,
+					'label' => 'Name'
+				],
+				'email' => [
+					'asc' => [ "$modelTable.email" => SORT_ASC ],
+					'desc' => [ "$modelTable.email" => SORT_DESC ],
+					'default' => SORT_DESC,
+					'label' => 'Email'
+				],
+				'status' => [
+					'asc' => [ "$modelTable.status" => SORT_ASC ],
+					'desc' => [ "$modelTable.status" => SORT_DESC ],
+					'default' => SORT_DESC,
+					'label' => 'Status'
+				],
+				'score' => [
+					'asc' => [ "$modelTable.score" => SORT_ASC ],
+					'desc' => [ "$modelTable.score" => SORT_DESC ],
+					'default' => SORT_DESC,
+					'label' => 'Score'
+				],
+				'pinned' => [
+					'asc' => [ "$modelTable.pinned" => SORT_ASC ],
+					'desc' => [ "$modelTable.pinned" => SORT_DESC ],
+					'default' => SORT_DESC,
+					'label' => 'Pinned'
+				],
+				'featured' => [
+					'asc' => [ "$modelTable.featured" => SORT_ASC ],
+					'desc' => [ "$modelTable.featured" => SORT_DESC ],
+					'default' => SORT_DESC,
+					'label' => 'Featured'
+				],
+				'anonymous' => [
+					'asc' => [ "$modelTable.anonymous" => SORT_ASC ],
+					'desc' => [ "$modelTable.anonymous" => SORT_DESC ],
+					'default' => SORT_DESC,
+					'label' => 'Anonymous'
+				],
+	            'cdate' => [
+	                'asc' => [ "$modelTable.createdAt" => SORT_ASC ],
+	                'desc' => [ "$modelTable.createdAt" => SORT_DESC ],
+	                'default' => SORT_DESC,
+	                'label' => 'Created At'
+	            ],
+	            'udate' => [
+	                'asc' => [ "$modelTable.modifiedAt" => SORT_ASC ],
+	                'desc' => [ "$modelTable.modifiedAt" => SORT_DESC ],
+	                'default' => SORT_DESC,
+	                'label' => 'Updated At'
+	            ],
+	            'adate' => [
+	                'asc' => [ "$modelTable.approvedAt" => SORT_ASC ],
+	                'desc' => [ "$modelTable.approvedAt" => SORT_DESC ],
+	                'default' => SORT_DESC,
+	                'label' => 'Approved At'
+	            ]
+			],
+			'defaultOrder' => [
+				'id' => SORT_DESC
+			]
+		]);
+
+		if( !isset( $config[ 'sort' ] ) ) {
+
+			$config[ 'sort' ] = $sort;
+		}
+
+		// Query ------------
+
+		if( !isset( $config[ 'query' ] ) ) {
+
+			$config[ 'hasOne' ] = true;
+		}
+
+		// Filters ----------
+
+		// Params
+		$status	= Yii::$app->request->getQueryParam( 'status' );
+		$filter	= Yii::$app->request->getQueryParam( 'model' );
+
+		// Filter - Status
+		if( isset( $status ) && isset( $modelClass::$urlRevStatusMap[ $status ] ) ) {
+
+			$config[ 'conditions' ][ "$modelTable.status" ]	= $modelClass::$urlRevStatusMap[ $status ];
+		}
+
+		// Filter - Model
+		if( isset( $filter ) ) {
+
+			switch( $filter ) {
+
+				case 'pinned': {
+
+					$config[ 'conditions' ][ "$modelTable.pinned" ] = true;
+
+					break;
+				}
+				case 'featured': {
+
+					$config[ 'conditions' ][ "$modelTable.featured" ] = true;
+
+					break;
+				}
+				case 'anonymous': {
+
+					$config[ 'conditions' ][ "$modelTable.anonymous" ] = true;
+
+					break;
+				}
+			}
+		}
+
+		// Searching --------
+
+		$searchCol	= Yii::$app->request->getQueryParam( 'search' );
+
+		if( isset( $searchCol ) ) {
+
+			$search = [
+				'user' => "concat(creator.firstName, ' ', creator.lastName)",
+				'name' => "$modelTable.name",
+				'email' =>  "$modelTable.email",
+				'content' => "$modelTable.content"
+			];
+
+			$config[ 'search-col' ] = $search[ $searchCol ];
+		}
+
+		// Reporting --------
+
+		$config[ 'report-col' ]	= [
+			'user' => "concat(creator.firstName, ' ', creator.lastName)",
+			'name' => "$modelTable.name",
+			'email' => "$modelTable.email",
+			'content' => "$modelTable.content",
+			'status' => "$modelTable.status",
+			'featured' => "$modelTable.featured"
+		];
+
+		// Result -----------
+
+		return parent::findPage( $config );
+	}
+
+	public function getPageByTopicId( $topicId, $config = [] ) {
+
+		$topLevel = isset( $config[ 'topLevel' ] ) ? $config[ 'topLevel' ] : true;
+
+		if( $topLevel ) {
+
+			$config[ 'conditions' ][ 'baseId' ] = null;
+		}
+
+		$config[ 'conditions' ][ 'topicId' ] = $topicId;
+
+		return $this->getPage( $config );
+	}
+
+	public function getPageByBaseId( $baseId, $config = [] ) {
+
+		$config[ 'conditions' ][ 'baseId' ] = $baseId;
+
+		return $this->getPage( $config );
+	}
+
+	public function getPageForApproved( $topicId, $config = [] ) {
+
+		$modelTable	= $this->getModelTable();
+
+		$config[ 'conditions' ][ "$modelTable.status" ]	= TopicReply::STATUS_APPROVED;
+
+		return $this->getPageByTopicId( $topicId, $config );
+	}
+
+	// Read ---------------
+
+	// Read - Models ---
+
+	/**
+	 * It returns immediate child replies for given base id.
+	 */
+	public function getByBaseId( $baseId, $config = [] ) {
+
+		$modelClass	= self::$modelClass;
+
+		return $modelClass::queryByBaseId( $baseId, $config )->all();
+	}
+
 	// Read - Lists ----
 
 	// Read - Maps -----
@@ -75,11 +309,173 @@ class TopicReplyService extends MetaService implements ITopicReplyService {
 
 	// Create -------------
 
+	public function create( $model, $config = [] ) {
+
+		$modelClass = static::$modelClass;
+
+		$model->agent	= Yii::$app->request->userAgent;
+		$model->ip		= Yii::$app->request->userIP;
+
+		// Default New
+		$model->status = $model->status ?? $modelClass::STATUS_NEW;
+
+		return parent::create( $model, $config );
+	}
+
 	// Update -------------
+
+	public function update( $model, $config = [] ) {
+
+		$admin = isset( $config[ 'admin' ] ) ? $config[ 'admin' ] : false;
+
+		$attributes = isset( $config[ 'attributes' ] ) ? $config[ 'attributes' ] : [
+			'name', 'email', 'avatarUrl', 'websiteUrl', 'content'
+		];
+
+		if( $admin ) {
+
+			$attributes	= ArrayHelper::merge( $attributes, [ 'status', 'score', 'pinned', 'featured' ] );
+		}
+
+		return parent::update( $model, [
+			'attributes' => $attributes
+		]);
+	}
+
+	// States
+
+	public function updateStatus( $model, $status ) {
+
+		$model->status = $status;
+
+		$model->update();
+
+		return $model;
+	}
+
+	public function approve( $model ) {
+
+		$model->approvedAt = DateUtil::getDateTime();
+
+		return $this->updateStatus( $model, TopicReply::STATUS_APPROVED );
+	}
+
+	public function block( $model ) {
+
+		return $this->updateStatus( $model, TopicReply::STATUS_BLOCKED );
+	}
+
+	public function markSpam( $model ) {
+
+		return $this->updateStatus( $model, TopicReply::STATUS_SPAM );
+	}
+
+	public function markTrash( $model ) {
+
+		return $this->updateStatus( $model, TopicReply::STATUS_TRASH );
+	}
+
+	// Attributes
+
+	public function updateSpamRequest( $model, $value = true ) {
+
+		$model->setDataMeta( CoreGlobal::META_COMMENT_SPAM_REQUEST, $value );
+
+		$model->update();
+
+		return $model;
+	}
+
+	public function updateDeleteRequest( $model, $value = true ) {
+
+		$model->setDataMeta( CoreGlobal::META_COMMENT_DELETE_REQUEST, $value );
+
+		$model->update();
+
+		return $model;
+	}
 
 	// Delete -------------
 
+	public function delete( $model, $config = [] ) {
+
+		// Delete Files
+		$this->fileService->deleteMultiple( $model->files );
+
+		// Delete model
+		return parent::delete( $model, $config );
+	}
+
 	// Bulk ---------------
+
+	protected function applyBulk( $model, $column, $action, $target, $config = [] ) {
+
+		switch( $column ) {
+
+			case 'status': {
+
+				switch( $action ) {
+
+					case 'approve': {
+
+						$this->approve( $model );
+
+						break;
+					}
+					case 'spam': {
+
+						$this->markSpam( $model );
+
+						break;
+					}
+					case 'trash': {
+
+						$this->markTrash( $model );
+
+						break;
+					}
+					case 'block': {
+
+						$this->block( $model );
+
+						break;
+					}
+				}
+
+				break;
+			}
+			case 'model': {
+
+				switch( $action ) {
+
+					case 'pinned': {
+
+						$model->pinned = true;
+
+						$model->update();
+
+						break;
+					}
+					case 'featured': {
+
+						$model->featured = true;
+
+						$model->update();
+
+						break;
+					}
+					case 'delete': {
+
+						$this->delete( $model );
+
+						break;
+					}
+				}
+
+				break;
+			}
+		}
+	}
 
 	// Notifications ------
 

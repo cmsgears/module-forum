@@ -10,25 +10,15 @@
 namespace cmsgears\forum\common\models\resources;
 
 // CMG Imports
-use cmsgears\core\common\models\base\Meta;
 use cmsgears\forum\common\models\base\ForumTables;
-
 use cmsgears\forum\common\models\entities\Topic;
 
 /**
- * The meta model used to store topic meta data and attributes.
+ * TopicMeta stores meta and attributes specific to topics.
  *
- * @property integer $id
- * @property integer $modelId
- * @property string $name
- * @property string $label
- * @property string $type
- * @property string $valueType
- * @property string $value
- *
- * @since 1.0.0
+ * @inheritdoc
  */
-class TopicMeta extends Meta {
+class TopicMeta extends \cmsgears\core\common\models\base\Meta {
 
 	// Variables ---------------------------------------------------
 
@@ -71,9 +61,9 @@ class TopicMeta extends Meta {
 	// TopicMeta -----------------------------
 
 	/**
-	 * Returns the site model using one-to-one(hasOne) relationship.
+	 * Return corresponding topic.
 	 *
-	 * @return \cmsgears\forum\common\models\entities\Topic Topic to which this meta belongs.
+	 * @return \cmsgears\forum\common\models\entities\Topic
 	 */
 	public function getParent() {
 
