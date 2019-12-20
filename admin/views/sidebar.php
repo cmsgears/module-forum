@@ -6,9 +6,8 @@ use yii\helpers\Html;
 use cmsgears\forum\common\config\ForumGlobal;
 
 $core	= Yii::$app->core;
-$user	= Yii::$app->user->getIdentity();
+$user	= Yii::$app->core->getUser();
 ?>
-
 <?php if( $core->hasModule( 'forum' ) && $user->isPermitted( ForumGlobal::PERM_FORUM_ADMIN ) ) { ?>
 	<div id="sidebar-forum" class="collapsible-tab has-children <?= $parent === 'sidebar-forum' ? 'active' : null ?>">
 		<span class="marker"></span>

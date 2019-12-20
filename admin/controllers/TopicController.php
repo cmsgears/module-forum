@@ -311,14 +311,6 @@ class TopicController extends \cmsgears\core\admin\controllers\base\CrudControll
 
 				switch( $status ) {
 
-					case $modelClass::STATUS_ACCEPTED: {
-
-						$this->modelService->accept( $model, [ 'notify' => false ] );
-
-						Yii::$app->coreMailer->sendAcceptMail( $model, $email, $message );
-
-						break;
-					}
 					case $modelClass::STATUS_SUBMITTED: {
 
 						$this->modelService->approve( $model, [ 'notify' => false ] );
@@ -386,7 +378,7 @@ class TopicController extends \cmsgears\core\admin\controllers\base\CrudControll
 			}
 			else {
 
-				$templatesMap = $this->templateService->getIdNameMapByType( $this->templateType, [ 'default' => true ] );
+				$templatesMap = $this->templateService->getIdNameMapByType( ForumGlobal::TYPE_TOPIC, [ 'default' => true ] );
 
 				return $this->render( 'review', [
 					'modelService' => $this->modelService,

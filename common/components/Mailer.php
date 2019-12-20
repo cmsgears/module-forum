@@ -25,7 +25,7 @@ class Mailer extends \cmsgears\core\common\base\Mailer {
 
 	public $htmlLayout	= '@cmsgears/module-core/common/mails/layouts/html';
 	public $textLayout	= '@cmsgears/module-core/common/mails/layouts/text';
-	public $viewPath	= '@cmsgears/module-topic/common/mails/views';
+	public $viewPath	= '@cmsgears/module-forum/common/mails/views';
 
 	// Protected --------------
 
