@@ -10,6 +10,7 @@
 // CMG Imports
 use cmsgears\core\common\config\CoreGlobal;
 use cmsgears\cms\common\config\CmsGlobal;
+use cmsgears\forum\common\config\ForumGlobal;
 
 use cmsgears\core\common\models\entities\Site;
 use cmsgears\core\common\models\entities\User;
@@ -175,7 +176,7 @@ class m180222_102221_forum_data extends \cmsgears\core\common\base\Migration {
 
 		$pages	= [
 			// Forum Page
-			[ $this->site->id, $this->master->id, $this->master->id, 'Forum', 'forum', CmsGlobal::TYPE_PAGE, null, null, Page::STATUS_ACTIVE, Page::VISIBILITY_PUBLIC, 0, false, false, DateUtil::getDateTime(), DateUtil::getDateTime() ]
+			[ $this->site->id, $this->master->id, $this->master->id, 'Forum', ForumGlobal::PAGE_SEARCH_TOPICS, CmsGlobal::TYPE_PAGE, null, null, Page::STATUS_ACTIVE, Page::VISIBILITY_PUBLIC, 0, false, false, DateUtil::getDateTime(), DateUtil::getDateTime() ]
 		];
 
 		$this->batchInsert( $this->prefix . 'cms_page', $columns, $pages );
@@ -187,7 +188,7 @@ class m180222_102221_forum_data extends \cmsgears\core\common\base\Migration {
 
 		$pages	= [
 			// Forum Page
-			[ Page::findBySlugType( 'forum', CmsGlobal::TYPE_PAGE )->id, CmsGlobal::TYPE_PAGE, null, null, null, null, $summary, $content, DateUtil::getDateTime() ]
+			[ Page::findBySlugType( ForumGlobal::PAGE_SEARCH_TOPICS, CmsGlobal::TYPE_PAGE )->id, CmsGlobal::TYPE_PAGE, null, null, null, null, $summary, $content, DateUtil::getDateTime() ]
 		];
 
 		$this->batchInsert( $this->prefix . 'cms_model_content', $columns, $pages );

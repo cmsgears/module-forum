@@ -22,6 +22,8 @@ class ForumGlobal {
 
 	// System Pages ---------------------------------------------------
 
+	const PAGE_SEARCH_TOPICS = 'forum';
+
 	// Grouping by type ------------------------------------------------
 
 	const TYPE_TOPIC		= 'topic';
