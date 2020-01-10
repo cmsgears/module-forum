@@ -22,7 +22,9 @@ class ForumGlobal {
 
 	// System Pages ---------------------------------------------------
 
-	const PAGE_SEARCH_TOPICS = 'forum';
+	const PAGE_SEARCH_TOPICS = 'search-topics';
+
+	const PAGE_FORUM = 'forum';
 
 	// Grouping by type ------------------------------------------------
 

@@ -53,12 +53,15 @@ class m180222_102221_forum_data extends \cmsgears\core\common\base\Migration {
 		// Create RBAC and Site Members
 		$this->insertRolePermission();
 
-		// Create newsletter permission groups and CRUD permissions
+		// Create topic permission groups and CRUD permissions
 		$this->insertTopicPermissions();
 
 		// Init system pages
 		$this->insertSystemPages();
-    }
+
+		// Notifications
+		$this->insertNotificationTemplates();
+	}
 
 	private function insertRolePermission() {
 
@@ -175,8 +178,10 @@ class m180222_102221_forum_data extends \cmsgears\core\common\base\Migration {
 		$columns = [ 'siteId', 'createdBy', 'modifiedBy', 'name', 'slug', 'type', 'icon', 'title', 'status', 'visibility', 'order', 'featured', 'comments', 'createdAt', 'modifiedAt' ];
 
 		$pages	= [
-			// Forum Page
-			[ $this->site->id, $this->master->id, $this->master->id, 'Forum', ForumGlobal::PAGE_SEARCH_TOPICS, CmsGlobal::TYPE_PAGE, null, null, Page::STATUS_ACTIVE, Page::VISIBILITY_PUBLIC, 0, false, false, DateUtil::getDateTime(), DateUtil::getDateTime() ]
+			// Topic Pages
+			[ $this->site->id, $this->master->id, $this->master->id, 'Forum', ForumGlobal::PAGE_FORUM, CmsGlobal::TYPE_PAGE, null, null, Page::STATUS_ACTIVE, Page::VISIBILITY_PUBLIC, 0, false, false, DateUtil::getDateTime(), DateUtil::getDateTime() ],
+			// Search Pages
+			[ $this->site->id, $this->master->id, $this->master->id, 'Search Topics', ForumGlobal::PAGE_SEARCH_TOPICS, CmsGlobal::TYPE_PAGE, null, null, Page::STATUS_ACTIVE, Page::VISIBILITY_PUBLIC, 0, false, false, DateUtil::getDateTime(), DateUtil::getDateTime() ]
 		];
 
 		$this->batchInsert( $this->prefix . 'cms_page', $columns, $pages );
@@ -187,11 +192,25 @@ class m180222_102221_forum_data extends \cmsgears\core\common\base\Migration {
 		$columns = [ 'parentId', 'parentType', 'seoName', 'seoDescription', 'seoKeywords', 'seoRobot', 'summary', 'content', 'publishedAt' ];
 
 		$pages	= [
-			// Forum Page
+			// Topic Pages
+			[ Page::findBySlugType( ForumGlobal::PAGE_FORUM, CmsGlobal::TYPE_PAGE )->id, CmsGlobal::TYPE_PAGE, null, null, null, null, $summary, $content, DateUtil::getDateTime() ],
+			// Search Pages
 			[ Page::findBySlugType( ForumGlobal::PAGE_SEARCH_TOPICS, CmsGlobal::TYPE_PAGE )->id, CmsGlobal::TYPE_PAGE, null, null, null, null, $summary, $content, DateUtil::getDateTime() ]
 		];
 
 		$this->batchInsert( $this->prefix . 'cms_model_content', $columns, $pages );
+	}
+
+	private function insertNotificationTemplates() {
+
+		$columns = [ 'createdBy', 'modifiedBy', 'name', 'slug', 'icon', 'type', 'description', 'active', 'renderer', 'fileRender', 'layout', 'layoutGroup', 'viewPath', 'createdAt', 'modifiedAt', 'message', 'content', 'data' ];
+
+		$templates = [
+			// Topic
+			[ $this->master->id, $this->master->id, 'New Topic', ForumGlobal::TPL_NOTIFY_TOPIC_NEW, null, 'notification', 'Trigger Notification and Email to Admin, when new Topic is created by site users.', true, 'twig', 0, null, false, null, DateUtil::getDateTime(), DateUtil::getDateTime(), 'New Topic - <b>{{model.displayName}}</b>', 'New Topic - <b>{{model.displayName}}</b> has been submitted for registration. {% if config.link %}Please follow this <a href="{{config.link}}">link</a>.{% endif %}{% if config.adminLink %}Please follow this <a href="{{config.adminLink}}">link</a>.{% endif %}', '{"config":{"admin":"1","user":"0","direct":"0","adminEmail":"1","userEmail":"0","directEmail":"0"}}' ]
+		];
+
+		$this->batchInsert( $this->prefix . 'core_template', $columns, $templates );
 	}
 
     public function down() {
