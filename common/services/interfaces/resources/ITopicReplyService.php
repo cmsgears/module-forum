@@ -21,6 +21,12 @@ interface ITopicReplyService extends IResourceService {
 
 	// Data Provider ------
 
+	public function getPageByTopicId( $topicId, $config = [] );
+
+	public function getPageByBaseId( $baseId, $config = [] );
+
+	public function getPageForApproved( $topicId, $config = [] );
+
 	// Read ---------------
 
 	// Read - Models ---

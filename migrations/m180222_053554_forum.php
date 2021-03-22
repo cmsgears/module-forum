@@ -8,8 +8,6 @@
  */
 
 // CMG Imports
-use cmsgears\core\common\base\Migration;
-
 use cmsgears\core\common\models\base\Meta;
 
 /**
@@ -18,7 +16,7 @@ use cmsgears\core\common\models\base\Meta;
  *
  * @since 1.0.0
  */
-class m180222_053554_forum extends Migration {
+class m180222_053554_forum extends \cmsgears\core\common\base\Migration {
 
 	// Public Variables
 
@@ -32,11 +30,11 @@ class m180222_053554_forum extends Migration {
 	public function init() {
 
 		// Table prefix
-		$this->prefix		= Yii::$app->migration->cmgPrefix;
+		$this->prefix = Yii::$app->migration->cmgPrefix;
 
 		// Get the values via config
-		$this->fk			= Yii::$app->migration->isFk();
-		$this->options		= Yii::$app->migration->getTableOptions();
+		$this->fk		= Yii::$app->migration->isFk();
+		$this->options	= Yii::$app->migration->getTableOptions();
 
 		// Default collation
 		if( $this->db->driverName === 'mysql' ) {
@@ -66,7 +64,7 @@ class m180222_053554_forum extends Migration {
         $this->createTable( $this->prefix . 'forum_topic', [
 			'id' => $this->bigPrimaryKey( 20 ),
 			'siteId' => $this->bigInteger( 20 )->notNull(),
-			'templateId' => $this->bigInteger( 20 ),
+			'avatarId' => $this->bigInteger( 20 ),
 			'createdBy' => $this->bigInteger( 20 )->notNull(),
 			'modifiedBy' => $this->bigInteger( 20 ),
 			'name' => $this->string( Yii::$app->core->xLargeText )->notNull(),
@@ -76,6 +74,10 @@ class m180222_053554_forum extends Migration {
 			'title' => $this->string( Yii::$app->core->xxxLargeText )->defaultValue( null ),
 			'description' => $this->string( Yii::$app->core->xtraLargeText )->defaultValue( null ),
 			'status' => $this->smallInteger( 6 )->defaultValue( 0 ),
+			'visibility' => $this->smallInteger( 6 )->defaultValue( 0 ),
+			'order' => $this->smallInteger( 6 ),
+			'pinned' => $this->boolean()->notNull()->defaultValue( false ),
+			'featured' => $this->boolean()->notNull()->defaultValue( false ),
 			'createdAt' => $this->dateTime()->notNull(),
 			'modifiedAt' => $this->dateTime(),
 			'content' => $this->mediumText(),
@@ -87,6 +89,7 @@ class m180222_053554_forum extends Migration {
 
         // Indexes for forum_topic
         $this->createIndex( 'idx_' . $this->prefix . 'topic_site', $this->prefix . 'forum_topic', 'siteId' );
+		$this->createIndex( 'idx_' . $this->prefix . 'topic_avatar', $this->prefix . 'forum_topic', 'avatarId' );
         $this->createIndex( 'idx_' . $this->prefix . 'topic_creator', $this->prefix . 'forum_topic', 'createdBy' );
         $this->createIndex( 'idx_' . $this->prefix . 'topic_modifier', $this->prefix . 'forum_topic', 'modifiedBy' );
     }
@@ -96,10 +99,12 @@ class m180222_053554_forum extends Migration {
 		$this->createTable( $this->prefix . 'forum_topic_meta', [
 			'id' => $this->bigPrimaryKey( 20 ),
 			'modelId' => $this->bigInteger( 20 )->notNull(),
+			'icon' => $this->string( Yii::$app->core->largeText )->defaultValue( null ),
 			'name' => $this->string( Yii::$app->core->xLargeText )->notNull(),
 			'label' => $this->string( Yii::$app->core->xxLargeText )->notNull(),
 			'type' => $this->string( Yii::$app->core->mediumText ),
 			'active' => $this->boolean()->defaultValue( false ),
+			'order' => $this->smallInteger( 6 )->defaultValue( 0 ),
 			'valueType' => $this->string( Yii::$app->core->mediumText )->notNull()->defaultValue( Meta::VALUE_TYPE_TEXT ),
 			'value' => $this->text(),
 			'data' => $this->mediumText()
@@ -115,8 +120,11 @@ class m180222_053554_forum extends Migration {
 			'id' => $this->bigPrimaryKey( 20 ),
 			'userId' => $this->bigInteger( 20 )->notNull(),
 			'modelId' => $this->bigInteger( 20 )->notNull(),
-			'type' => $this->smallInteger( 6 )->defaultValue( 0 ),
-			'active' => $this->boolean()->notNull()->defaultValue( false ),
+			'type' => $this->string( Yii::$app->core->mediumText )->notNull(),
+			'order' => $this->smallInteger( 6 )->defaultValue( 0 ),
+			'active' => $this->boolean()->notNull()->defaultValue( true ),
+			'pinned' => $this->boolean()->notNull()->defaultValue( false ),
+			'featured' => $this->boolean()->notNull()->defaultValue( false ),
 			'createdAt' => $this->dateTime()->notNull(),
 			'modifiedAt' => $this->dateTime(),
 			'data' => $this->mediumText()
@@ -137,6 +145,13 @@ class m180222_053554_forum extends Migration {
 			'videoId' => $this->bigInteger( 20 ),
 			'createdBy' => $this->bigInteger( 20 ),
 			'modifiedBy' => $this->bigInteger( 20 ),
+			'title' => $this->string( Yii::$app->core->xxxLargeText )->defaultValue( null ),
+			'name' => $this->string( Yii::$app->core->xxLargeText )->defaultValue( null ),
+			'email' => $this->string( Yii::$app->core->xxLargeText )->defaultValue( null ),
+			'mobile' => $this->string( Yii::$app->core->smallText )->defaultValue( null ),
+			'phone' => $this->string( Yii::$app->core->smallText )->defaultValue( null ),
+			'avatarUrl' => $this->string( Yii::$app->core->xxxLargeText )->defaultValue( null ),
+			'websiteUrl' => $this->string( Yii::$app->core->xxxLargeText )->defaultValue( null ),
 			'ip' => $this->string( Yii::$app->core->mediumText )->defaultValue( null ),
 			'ipNum' => $this->integer(11)->defaultValue( 0 ),
 			'agent' => $this->string( Yii::$app->core->xxLargeText )->defaultValue( null ),
@@ -145,11 +160,13 @@ class m180222_053554_forum extends Migration {
 			'fragment' => $this->smallInteger( 6 )->notNull()->defaultValue( 0 ),
 			'pinned' => $this->boolean()->notNull()->defaultValue( false ),
 			'featured' => $this->boolean()->notNull()->defaultValue( false ),
+			'anonymous' => $this->boolean()->notNull()->defaultValue( false ),
 			'createdAt' => $this->dateTime()->notNull(),
 			'modifiedAt' => $this->dateTime(),
 			'approvedAt' => $this->dateTime(),
 			'content' => $this->mediumText(),
 			'data' => $this->mediumText(),
+			'userAgent' => $this->mediumText(),
 			'gridCache' => $this->longText(),
 			'gridCacheValid' => $this->boolean()->notNull()->defaultValue( false ),
 			'gridCachedAt' => $this->dateTime()
@@ -167,9 +184,10 @@ class m180222_053554_forum extends Migration {
     private function generateForeignKeys() {
 
 		// Topic
+		$this->addForeignKey( 'fk_' . $this->prefix . 'topic_site', $this->prefix . 'forum_topic', 'siteId', $this->prefix . 'core_site', 'id', 'RESTRICT' );
+		$this->addForeignKey( 'fk_' . $this->prefix . 'topic_avatar', $this->prefix . 'forum_topic', 'avatarId', $this->prefix . 'core_file', 'id', 'SET NULL' );
 		$this->addForeignKey( 'fk_' . $this->prefix . 'topic_creator', $this->prefix . 'forum_topic', 'createdBy', $this->prefix . 'core_user', 'id', 'RESTRICT' );
 		$this->addForeignKey( 'fk_' . $this->prefix . 'topic_modifier', $this->prefix . 'forum_topic', 'modifiedBy', $this->prefix . 'core_user', 'id', 'RESTRICT' );
-		$this->addForeignKey( 'fk_' . $this->prefix . 'topic_site', $this->prefix . 'forum_topic', 'siteId', $this->prefix . 'core_site', 'id', 'RESTRICT' );
 
 		// Topic Meta
 		$this->addForeignKey( 'fk_' . $this->prefix . 'topic_meta_parent', $this->prefix . 'forum_topic_meta', 'modelId', $this->prefix . 'forum_topic', 'id', 'CASCADE' );
@@ -203,9 +221,10 @@ class m180222_053554_forum extends Migration {
     private function dropForeignKeys() {
 
         // Topic
+        $this->dropForeignKey( 'fk_' . $this->prefix . 'topic_site', $this->prefix . 'forum_topic' );
+		$this->dropForeignKey( 'fk_' . $this->prefix . 'topic_avatar', $this->prefix . 'forum_topic' );
         $this->dropForeignKey( 'fk_' . $this->prefix . 'topic_creator', $this->prefix . 'forum_topic' );
         $this->dropForeignKey( 'fk_' . $this->prefix . 'topic_modifier', $this->prefix . 'forum_topic' );
-        $this->dropForeignKey( 'fk_' . $this->prefix . 'topic_site', $this->prefix . 'forum_topic' );
 
 		// Topic Meta
 		$this->dropForeignKey( 'fk_' . $this->prefix . 'topic_meta_parent', $this->prefix . 'forum_topic_meta' );

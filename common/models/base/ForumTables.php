@@ -21,7 +21,7 @@ class ForumTables extends DbTables {
 
 	// Entities -------------
 
-    const TABLE_TOPIC		= 'cmg_forum_topic';
+    const TABLE_TOPIC = 'cmg_forum_topic';
 
 	// Resources ------------
 
@@ -29,5 +29,7 @@ class ForumTables extends DbTables {
 	const TABLE_TOPIC_REPLY	= 'cmg_forum_topic_reply';
 
 	// Mappers --------------
+
+	const TABLE_TOPIC_FOLLOWER = 'cmg_forum_topic_follower';
 
 }

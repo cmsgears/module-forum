@@ -18,16 +18,24 @@ class ForumGlobal {
 
 	// System Sites ---------------------------------------------------
 
-	const SITE_FORUM	= 'forum';
+	const SITE_FORUM = 'forum';
 
 	// System Pages ---------------------------------------------------
 
+	const PAGE_SEARCH_TOPICS = 'search-topics';
+
+	const PAGE_FORUM = 'forum';
+
 	// Grouping by type ------------------------------------------------
 
-	const TYPE_FORUM		= 'forum';
-	const TYPE_FORUM_REPLY	= 'forum-reply';
+	const TYPE_TOPIC		= 'topic';
+	const TYPE_TOPIC_REPLY	= 'topic-reply';
 
 	// Templates -------------------------------------------------------
+
+	const TEMPLATE_FORUM = 'forum';
+
+	const TPL_NOTIFY_TOPIC_NEW = 'topic-new';
 
 	// Config ----------------------------------------------------------
 
@@ -63,6 +71,6 @@ class ForumGlobal {
 	// Model Fields ----------------------------------------------------
 
 	// Generic Fields
-	const FIELD_TOPIC		= 'topicField';
+	const FIELD_TOPIC = 'topicField';
 
 }

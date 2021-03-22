@@ -9,15 +9,12 @@
 
 namespace cmsgears\forum\common\components;
 
-// CMG Imports
-use cmsgears\core\common\base\Component;
-
 /**
  * Forum component initialises the Forum Module.
  *
  * @since 1.0.0
  */
-class Forum extends Component {
+class Forum extends \cmsgears\core\common\base\Component {
 
 	// Global -----------------
 

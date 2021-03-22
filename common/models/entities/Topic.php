@@ -1,11 +1,12 @@
 <?php
 /**
+ * This file is part of CMSGears Framework. Please view License file distributed
+ * with the source code for license details.
+ *
  * @link https://www.cmsgears.org/
  * @copyright Copyright (c) 2015 VulpineCode Technologies Pvt. Ltd.
- * @license https://www.cmsgears.org/license/
- * @package module
- * @subpackage forum
  */
+
 namespace cmsgears\forum\common\models\entities;
 
 // Yii Imports
@@ -19,31 +20,55 @@ use yii\behaviors\SluggableBehavior;
 use cmsgears\core\common\config\CoreGlobal;
 use cmsgears\forum\common\config\ForumGlobal;
 
-use cmsgears\core\common\models\interfaces\base\IAuthor;
 use cmsgears\core\common\models\interfaces\base\IApproval;
+use cmsgears\core\common\models\interfaces\base\IAuthor;
+use cmsgears\core\common\models\interfaces\base\IFeatured;
 use cmsgears\core\common\models\interfaces\base\IMultiSite;
 use cmsgears\core\common\models\interfaces\base\INameType;
+use cmsgears\core\common\models\interfaces\base\IOwner;
 use cmsgears\core\common\models\interfaces\base\ISlugType;
+use cmsgears\core\common\models\interfaces\base\IVisibility;
+use cmsgears\core\common\models\interfaces\resources\IContent;
 use cmsgears\core\common\models\interfaces\resources\IData;
 use cmsgears\core\common\models\interfaces\resources\IGridCache;
-use cmsgears\core\common\models\interfaces\resources\ITemplate;
-use cmsgears\core\common\models\interfaces\mappers\ICategory;
-use cmsgears\core\common\models\interfaces\mappers\ITag;
+use cmsgears\core\common\models\interfaces\resources\IMeta;
+use cmsgears\core\common\models\interfaces\resources\IVisual;
+use cmsgears\core\common\models\interfaces\mappers\IFile;
+use cmsgears\core\common\models\interfaces\mappers\IFollower;
+use cmsgears\core\common\models\interfaces\mappers\IGallery;
+use cmsgears\core\common\models\interfaces\mappers\IOption;
+use cmsgears\cms\common\models\interfaces\resources\IPageContent;
+use cmsgears\cms\common\models\interfaces\mappers\IBlock;
+use cmsgears\cms\common\models\interfaces\mappers\IElement;
+use cmsgears\cms\common\models\interfaces\mappers\IWidget;
 
-use cmsgears\core\common\models\base\Entity;
 use cmsgears\forum\common\models\base\ForumTables;
 use cmsgears\forum\common\models\resources\TopicMeta;
+use cmsgears\forum\common\models\mappers\TopicFollower;
 
-use cmsgears\core\common\models\traits\base\AuthorTrait;
 use cmsgears\core\common\models\traits\base\ApprovalTrait;
+use cmsgears\core\common\models\traits\base\AuthorTrait;
+use cmsgears\core\common\models\traits\base\FeaturedTrait;
 use cmsgears\core\common\models\traits\base\MultiSiteTrait;
 use cmsgears\core\common\models\traits\base\NameTypeTrait;
+use cmsgears\core\common\models\traits\base\OwnerTrait;
 use cmsgears\core\common\models\traits\base\SlugTypeTrait;
+use cmsgears\core\common\models\traits\base\VisibilityTrait;
+use cmsgears\core\common\models\traits\resources\ContentTrait;
 use cmsgears\core\common\models\traits\resources\DataTrait;
 use cmsgears\core\common\models\traits\resources\GridCacheTrait;
-use cmsgears\core\common\models\traits\resources\TemplateTrait;
+use cmsgears\core\common\models\traits\resources\MetaTrait;
+use cmsgears\core\common\models\traits\resources\VisualTrait;
 use cmsgears\core\common\models\traits\mappers\CategoryTrait;
+use cmsgears\core\common\models\traits\mappers\FileTrait;
+use cmsgears\core\common\models\traits\mappers\FollowerTrait;
+use cmsgears\core\common\models\traits\mappers\GalleryTrait;
+use cmsgears\core\common\models\traits\mappers\OptionTrait;
 use cmsgears\core\common\models\traits\mappers\TagTrait;
+use cmsgears\cms\common\models\traits\resources\PageContentTrait;
+use cmsgears\cms\common\models\traits\mappers\BlockTrait;
+use cmsgears\cms\common\models\traits\mappers\ElementTrait;
+use cmsgears\cms\common\models\traits\mappers\WidgetTrait;
 
 use cmsgears\core\common\behaviors\AuthorBehavior;
 
@@ -52,7 +77,7 @@ use cmsgears\core\common\behaviors\AuthorBehavior;
  *
  * @property integer $id
  * @property integer $siteId
- * @property integer $templateId
+ * @property integer $avatarId
  * @property integer $createdBy
  * @property integer $modifiedBy
  * @property string $name
@@ -62,6 +87,10 @@ use cmsgears\core\common\behaviors\AuthorBehavior;
  * @property string $title
  * @property string $description
  * @property integer $status
+ * @property integer $visibility
+ * @property integer $order
+ * @property boolean $pinned
+ * @property boolean $featured
  * @property datetime $createdAt
  * @property datetime $modifiedAt
  * @property string $content
@@ -72,8 +101,9 @@ use cmsgears\core\common\behaviors\AuthorBehavior;
  *
  * @since 1.0.0
  */
-class Topic extends Entity implements IAuthor, IApproval, ICategory, IData, IGridCache, IModelMeta,
-	IMultiSite, INameType, ISlugType, ITag, ITemplate {
+class Topic extends \cmsgears\core\common\models\base\Entity implements IApproval, IAuthor,
+	IBlock, IContent, IData, IElement, IFeatured, IFile, IFollower, IGallery, IGridCache, IMeta, IMultiSite,
+	INameType, IOption, IOwner, IPageContent, ISlugType, IVisibility, IVisual, IWidget {
 
 	// Variables ---------------------------------------------------
 
@@ -91,25 +121,50 @@ class Topic extends Entity implements IAuthor, IApproval, ICategory, IData, IGri
 
 	// Protected --------------
 
-	protected $modelType	= ForumGlobal::TYPE_FORUM;
+	protected $modelType = ForumGlobal::TYPE_TOPIC;
+
+	protected $followerClass;
+
+	protected $metaClass;
 
 	// Private ----------------
 
 	// Traits ------------------------------------------------------
 
-    use AuthorTrait;
 	use ApprovalTrait;
+    use AuthorTrait;
+	use BlockTrait;
 	use CategoryTrait;
-    use DataTrait;
+    use ContentTrait;
+	use DataTrait;
+	use ElementTrait;
+	use FeaturedTrait;
+	use FileTrait;
+	use FollowerTrait;
+	use GalleryTrait;
 	use GridCacheTrait;
-	use ModelMetaTrait;
+	use MetaTrait;
 	use MultiSiteTrait;
 	use NameTypeTrait;
+	use OptionTrait;
+	use OwnerTrait;
+	use PageContentTrait;
 	use SlugTypeTrait;
 	use TagTrait;
-    use TemplateTrait;
+	use VisibilityTrait;
+	use VisualTrait;
+	use WidgetTrait;
 
 	// Constructor and Initialisation ------------------------------
+
+	public function __construct( $config = [] ) {
+
+		$this->followerClass = TopicFollower::class;
+
+		$this->metaClass = TopicMeta::class;
+
+		parent::__construct();
+	}
 
 	// Instance methods --------------------------------------------
 
@@ -137,9 +192,10 @@ class Topic extends Entity implements IAuthor, IApproval, ICategory, IData, IGri
 			'sluggableBehavior' => [
 				'class' => SluggableBehavior::class,
 				'attribute' => 'name',
-				'slugAttribute' => 'slug', // Unique for combination of Site Id
+				'slugAttribute' => 'slug', // Unique for Site Id
+				'immutable' => true,
 				'ensureUnique' => true,
-				'uniqueValidator' => [ 'targetAttribute' => 'siteId' ]
+				'uniqueValidator' => [ 'targetAttribute' => [ 'siteId', 'slug' ] ]
 			]
         ];
     }
@@ -147,17 +203,17 @@ class Topic extends Entity implements IAuthor, IApproval, ICategory, IData, IGri
 	// yii\base\Model ---------
 
     /**
-	 * @inheritdoc
-	 */
+     * @inheritdoc
+     */
     public function rules() {
 
-        // Model Rules
-        $rules = [
+		// Model Rules
+		$rules = [
 			// Required, Safe
 			[ [ 'siteId', 'name' ], 'required' ],
 			[ [ 'id', 'content', 'data', 'gridCache' ], 'safe' ],
 			// Unique
-			[ [ 'siteId', 'type', 'name' ], 'unique', 'targetAttribute' => [ 'siteId', 'type', 'name' ], 'comboNotUnique' => Yii::$app->coreMessage->getMessage( CoreGlobal::ERROR_EXIST ) ],
+			[ 'slug', 'unique', 'targetAttribute' => [ 'siteId', 'slug' ] ],
 			// Text Limit
 			[ 'type', 'string', 'min' => 1, 'max' => Yii::$app->core->mediumText ],
 			[ 'icon', 'string', 'min' => 1, 'max' => Yii::$app->core->largeText ],
@@ -166,11 +222,10 @@ class Topic extends Entity implements IAuthor, IApproval, ICategory, IData, IGri
 			[ 'title', 'string', 'min' => 1, 'max' => Yii::$app->core->xxxLargeText ],
 			[ 'description', 'string', 'min' => 1, 'max' => Yii::$app->core->xtraLargeText ],
 			// Other
-            [ [ 'templateId' ], 'number', 'integerOnly' => true, 'min' => 0, 'tooSmall' => Yii::$app->coreMessage->getMessage( CoreGlobal::ERROR_SELECT ) ],
-            [ 'gridCacheValid', 'boolean' ],
-            [ 'status', 'number', 'integerOnly' => true, 'min' => 0 ],
-			[ [ 'siteId', 'createdBy', 'modifiedBy' ], 'number', 'integerOnly' => true, 'min' => 1 ],
-            [ [ 'createdAt', 'modifiedAt', 'lastSentAt', 'gridCachedAt' ], 'date', 'format' => Yii::$app->formatter->datetimeFormat ]
+			[ [ 'featured', 'pinned', 'gridCacheValid' ], 'boolean' ],
+			[ [ 'status', 'visibility', 'order' ], 'number', 'integerOnly' => true, 'min' => 0 ],
+			[ [ 'siteId', 'avatarId', 'createdBy', 'modifiedBy' ], 'number', 'integerOnly' => true, 'min' => 1 ],
+			[ [ 'createdAt', 'modifiedAt', 'gridCachedAt' ], 'date', 'format' => Yii::$app->formatter->datetimeFormat ]
         ];
 
        // Trim Text
@@ -191,16 +246,19 @@ class Topic extends Entity implements IAuthor, IApproval, ICategory, IData, IGri
 
 		return [
 			'siteId' => Yii::$app->coreMessage->getMessage( CoreGlobal::FIELD_SITE ),
-			'templateId' => Yii::$app->coreMessage->getMessage( CoreGlobal::FIELD_TEMPLATE ),
+			'avatarId' => Yii::$app->coreMessage->getMessage( CoreGlobal::FIELD_AVATAR ),
 			'name' => Yii::$app->coreMessage->getMessage( CoreGlobal::FIELD_NAME ),
-            'slug' => Yii::$app->coreMessage->getMessage( CoreGlobal::FIELD_SLUG ),
-            'type' => Yii::$app->coreMessage->getMessage( CoreGlobal::FIELD_TYPE ),
-            'icon' => Yii::$app->coreMessage->getMessage( CoreGlobal::FIELD_ICON ),
+			'slug' => Yii::$app->coreMessage->getMessage( CoreGlobal::FIELD_SLUG ),
+			'type' => Yii::$app->coreMessage->getMessage( CoreGlobal::FIELD_TYPE ),
+			'icon' => Yii::$app->coreMessage->getMessage( CoreGlobal::FIELD_ICON ),
 			'title' => Yii::$app->coreMessage->getMessage( CoreGlobal::FIELD_TITLE ),
-            'description' => Yii::$app->coreMessage->getMessage( CoreGlobal::FIELD_DESCRIPTION ),
-            'status' => Yii::$app->coreMessage->getMessage( CoreGlobal::FIELD_STATUS ),
-            'content' => Yii::$app->coreMessage->getMessage( CoreGlobal::FIELD_CONTENT ),
-            'data' => Yii::$app->coreMessage->getMessage( CoreGlobal::FIELD_DATA ),
+			'description' => Yii::$app->coreMessage->getMessage( CoreGlobal::FIELD_DESCRIPTION ),
+			'status' => Yii::$app->coreMessage->getMessage( CoreGlobal::FIELD_STATUS ),
+			'order' => Yii::$app->coreMessage->getMessage( CoreGlobal::FIELD_ORDER ),
+			'pinned' => Yii::$app->coreMessage->getMessage( CoreGlobal::FIELD_PINNED ),
+			'featured' => Yii::$app->coreMessage->getMessage( CoreGlobal::FIELD_FEATURED ),
+			'content' => Yii::$app->coreMessage->getMessage( CoreGlobal::FIELD_CONTENT ),
+			'data' => Yii::$app->coreMessage->getMessage( CoreGlobal::FIELD_DATA ),
 			'gridCache' => Yii::$app->coreMessage->getMessage( CoreGlobal::FIELD_GRID_CACHE )
 		];
 	}
@@ -214,9 +272,9 @@ class Topic extends Entity implements IAuthor, IApproval, ICategory, IData, IGri
 
 	    if( parent::beforeSave( $insert ) ) {
 
-			if( $this->templateId <= 0 ) {
+			if( empty( $this->status ) || $this->status <= 0 ) {
 
-				$this->templateId = null;
+				$this->status = self::STATUS_NEW;
 			}
 
 	        return true;
@@ -232,16 +290,6 @@ class Topic extends Entity implements IAuthor, IApproval, ICategory, IData, IGri
 	// Validators ----------------------------
 
 	// Topic ---------------------------------
-
-	/**
-	 * Return meta data of the topic.
-	 *
-	 * @return \cmsgears\forum\common\models\resources\TopicMeta[]
-	 */
-	public function getMetas() {
-
-		return $this->hasMany( TopicMeta::class, [ 'modelId' => 'id' ] );
-	}
 
 	// Static Methods ----------------------------------------------
 
@@ -260,13 +308,40 @@ class Topic extends Entity implements IAuthor, IApproval, ICategory, IData, IGri
 
 	// Read - Query -----------
 
-     /**
+    /**
      * @inheritdoc
      */
 	public static function queryWithHasOne( $config = [] ) {
 
-		$relations				= isset( $config[ 'relations' ] ) ? $config[ 'relations' ] : [ 'template', 'creator', 'modifier' ];
-		$config[ 'relations' ]	= $relations;
+		$relations = isset( $config[ 'relations' ] ) ? $config[ 'relations' ] : [ 'avatar', 'modelContent', 'modelContent.template', 'creator', 'modifier' ];
+
+		$config[ 'relations' ] = $relations;
+
+		return parent::queryWithAll( $config );
+	}
+
+	/**
+	 * Return query to find the topic with model content.
+	 *
+	 * @param array $config
+	 * @return \yii\db\ActiveQuery to query with model content.
+	 */
+	public static function queryWithContent( $config = [] ) {
+
+		$config[ 'relations' ]	= [ 'avatar', 'modelContent' ];
+
+		return parent::queryWithAll( $config );
+	}
+
+	/**
+	 * Return query to find the topic with model content, banner and gallery.
+	 *
+	 * @param array $config
+	 * @return \yii\db\ActiveQuery to query with model content, banner and gallery.
+	 */
+	public static function queryWithFullContent( $config = [] ) {
+
+		$config[ 'relations' ]	= [ 'avatar', 'modelContent', 'modelContent.template', 'modelContent.banner', 'modelContent.gallery' ];
 
 		return parent::queryWithAll( $config );
 	}
