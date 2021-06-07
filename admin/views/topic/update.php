@@ -3,8 +3,6 @@
 use yii\helpers\Html;
 
 // CMG Imports
-use cmsgears\forum\common\config\ForumGlobal;
-
 use cmsgears\core\common\widgets\ActiveForm;
 
 use cmsgears\core\common\widgets\Editor;
@@ -13,6 +11,7 @@ use cmsgears\files\widgets\ImageUploader;
 use cmsgears\files\widgets\VideoUploader;
 
 use cmsgears\icons\widgets\IconChooser;
+use cmsgears\icons\widgets\TextureChooser;
 
 use cmsgears\widgets\category\CategorySuggest;
 use cmsgears\widgets\tag\TagMapper;
@@ -21,13 +20,18 @@ use cmsgears\widgets\elements\mappers\BlockSuggest;
 use cmsgears\widgets\elements\mappers\WidgetSuggest;
 
 $coreProperties = $this->context->getCoreProperties();
-$this->title 	= 'Update Topic | ' . $coreProperties->getSiteTitle();
+$title			= $this->context->title;
+$this->title 	= "Update {$title} | " . $coreProperties->getSiteTitle();
+$parentType		= $this->context->parentType;
 $returnUrl		= $this->context->returnUrl;
 $apixBase		= $this->context->apixBase;
+$tagWidgetSlug	= $this->context->tagWidgetSlug;
 
 Editor::widget();
+
+$forumName = isset( $model->forum ) ? $model->forum->name : null;
 ?>
-<div class="box-crud-wrap row">
+<div class="box-crud-wrap row max-cols-100">
 	<div class="box-crud-wrap-main colf colf3x2">
 		<?php $form = ActiveForm::begin( [ 'id' => 'frm-topic', 'options' => [ 'class' => 'form' ] ] ); ?>
 		<div class="box box-crud">
@@ -36,7 +40,7 @@ Editor::widget();
 			</div>
 			<div class="box-content-wrap frm-split-40-60">
 				<div class="box-content">
-					<div class="row">
+					<div class="row max-cols-100">
 						<div class="col col3">
 							<?= $form->field( $model, 'name' ) ?>
 						</div>
@@ -47,12 +51,15 @@ Editor::widget();
 							<?= $form->field( $model, 'title' ) ?>
 						</div>
 					</div>
-					<div class="row">
+					<div class="row max-cols-100">
 						<div class="col col2">
 							<?= $form->field( $content, 'templateId' )->dropDownList( $templatesMap, [ 'class' => 'cmt-select' ] ) ?>
 						</div>
+						<div class="col col2">
+							<?= $form->field( $model, 'description' )->textarea() ?>
+						</div>
 					</div>
-					<div class="row">
+					<div class="row max-cols-100">
 						<div class="col col2">
 							<?= $form->field( $model, 'status' )->dropDownList( $statusMap, [ 'class' => 'cmt-select' ] ) ?>
 						</div>
@@ -60,26 +67,39 @@ Editor::widget();
 							<?= $form->field( $model, 'visibility' )->dropDownList( $visibilityMap, [ 'class' => 'cmt-select' ] ) ?>
 						</div>
 					</div>
-					<div class="row">
-						<div class="col col2">
+					<div class="row max-cols-100">
+						<div class="col col3">
 							<?= Yii::$app->formDesigner->getIconCheckbox( $form, $model, 'pinned', null, 'cmti cmti-checkbox' ) ?>
 						</div>
-						<div class="col col2">
+						<div class="col col3">
 							<?= Yii::$app->formDesigner->getIconCheckbox( $form, $model, 'featured', null, 'cmti cmti-checkbox' ) ?>
 						</div>
+						<div class="col col3">
+							<?= Yii::$app->formDesigner->getIconCheckbox( $form, $model, 'popular', null, 'cmti cmti-checkbox' ) ?>
+						</div>
 					</div>
-					<div class="row">
+					<div class="row max-cols-100">
 						<div class="col col2">
 							<?= IconChooser::widget( [ 'model' => $model, 'options' => [ 'class' => 'icon-picker-wrap' ] ] ) ?>
 						</div>
 						<div class="col col2">
-							<?= $form->field( $model, 'description' )->textarea() ?>
+							<?= TextureChooser::widget( [ 'model' => $model, 'options' => [ 'class' => 'icon-picker-wrap' ] ] ) ?>
 						</div>
 					</div>
-					<div class="row">
+					<div class="row max-cols-100">
 						<div class="col col2">
 							<?= $form->field( $model, 'order' ) ?>
 						</div>
+						<div class="col col2">
+							<?= $form->field( $content, 'publishedAt' )->textInput( [ 'class' => 'datetimepicker' ] ) ?>
+						</div>
+					</div>
+					<div class="row max-cols-100">
+						<?php if( empty( $forum ) ) { ?>
+							<div class="col col2">
+								<?= Yii::$app->formDesigner->getAutoSuggest( $form, $model, 'forumId', [ 'placeholder' => 'Forum', 'icon' => 'cmti cmti-search', 'value' => $forumName, 'url' => 'forum/forum/auto-search' ] ) ?>
+							</div>
+						<?php } ?>
 					</div>
 				</div>
 			</div>
@@ -91,22 +111,29 @@ Editor::widget();
 			</div>
 			<div class="box-content">
 				<div class="box-content">
-					<div class="row padding padding-small-v">
-						<div class="col col12x4">
+					<div class="row max-cols-50 padding padding-small-v">
+						<div class="col col12x3">
 							<label>Avatar</label>
 							<?= AvatarUploader::widget([
 								'model' => $avatar, 'clearAction' => true,
 								'clearActionUrl' => "$apixBase/clear-avatar?slug=$model->slug&type=$model->type"
 							])?>
 						</div>
-						<div class="col col12x4">
+						<div class="col col12x3">
 							<label>Banner</label>
 							<?= ImageUploader::widget([
 								'model' => $banner, 'clearAction' => true,
 								'clearActionUrl' => "$apixBase/clear-banner?slug=$model->slug&type=$model->type"
 							])?>
 						</div>
-						<div class="col col12x4">
+						<div class="col col12x3">
+							<label>Mobile Banner</label>
+							<?= ImageUploader::widget([
+								'model' => $mbanner, 'modelClass' => 'MobileBanner', 'clearAction' => true,
+								'clearActionUrl' => "$apixBase/clear-mbanner?slug=$model->slug&type=$model->type"
+							])?>
+						</div>
+						<div class="col col12x3">
 							<label>Video</label>
 							<?= VideoUploader::widget([
 								'model' => $video, 'clearAction' => true,
@@ -146,7 +173,7 @@ Editor::widget();
 			</div>
 			<div class="box-content">
 				<div class="box-content">
-					<div class="row">
+					<div class="row max-cols-100">
 						<div class="col col2">
 							<?= $form->field( $content, 'seoName' ) ?>
 						</div>
@@ -154,12 +181,17 @@ Editor::widget();
 							<?= $form->field( $content, 'seoRobot' ) ?>
 						</div>
 					</div>
-					<div class="row">
+					<div class="row max-cols-100">
 						<div class="col col2">
 							<?= $form->field( $content, 'seoKeywords' )->textarea() ?>
 						</div>
 						<div class="col col2">
 							<?= $form->field( $content, 'seoDescription' )->textarea() ?>
+						</div>
+					</div>
+					<div class="row max-cols-100">
+						<div class="col col1">
+							<?= $form->field( $content, 'seoSchema' )->textarea() ?>
 						</div>
 					</div>
 				</div>
@@ -179,7 +211,7 @@ Editor::widget();
 				</div>
 				<div class="box-content padding padding-small">
 					<?= CategorySuggest::widget([
-						'model' => $model, 'type' => ForumGlobal::TYPE_TOPIC,
+						'model' => $model, 'type' => $parentType,
 						'mapActionUrl' => "$apixBase/assign-category?slug=$model->slug&type=$model->type",
 						'deleteActionUrl' => "$apixBase/remove-category?slug=$model->slug&type=$model->type"
 					])?>
@@ -192,7 +224,7 @@ Editor::widget();
 				</div>
 				<div class="box-content padding padding-small">
 					<?= TagMapper::widget([
-						'model' => $model,
+						'model' => $model, 'widgetSlug' => $tagWidgetSlug, 'templateId' => $tagTemplateId,
 						'mapActionUrl' => "$apixBase/assign-tags?slug=$model->slug&type=$model->type",
 						'deleteActionUrl' => "$apixBase/remove-tag?slug=$model->slug&type=$model->type"
 					])?>

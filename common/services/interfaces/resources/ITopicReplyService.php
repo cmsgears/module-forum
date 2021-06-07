@@ -41,6 +41,26 @@ interface ITopicReplyService extends IResourceService {
 
 	// Update -------------
 
+	// States -----
+
+	public function updateStatus( $model, $status );
+
+	public function approve( $model );
+
+	public function block( $model );
+
+	public function markSpam( $model );
+
+	public function markTrash( $model );
+
+	// Requests ---
+
+	public function spamRequest( $model, $parent, $config = [] );
+
+	public function approveRequest( $model, $parent, $config = [] );
+
+	public function deleteRequest( $model, $parent, $config = [] );
+
 	// Delete -------------
 
 	// Bulk ---------------

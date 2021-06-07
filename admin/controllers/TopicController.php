@@ -11,6 +11,7 @@ namespace cmsgears\forum\admin\controllers;
 
 // Yii Imports
 use Yii;
+use yii\filters\VerbFilter;
 use yii\helpers\Url;
 use yii\base\Exception;
 use yii\web\NotFoundHttpException;
@@ -28,7 +29,7 @@ use cmsgears\core\common\behaviors\ActivityBehavior;
  *
  * @since 1.0.0
  */
-class TopicController extends \cmsgears\core\admin\controllers\base\CrudController {
+class TopicController extends \cmsgears\core\admin\controllers\base\Controller {
 
 	// Variables ---------------------------------------------------
 
@@ -38,35 +39,38 @@ class TopicController extends \cmsgears\core\admin\controllers\base\CrudControll
 
 	public $title;
 
+	public $tagWidgetSlug;
+
+	public $parentType;
+
 	public $metaService;
 
 	// Protected --------------
 
-	protected $type;
 	protected $templateType;
 	protected $prettyReview;
 
 	protected $templateService;
-
 	protected $modelContentService;
-	protected $modelCategoryService;
 
-	// Private------------
+	protected $forumService;
+
+	// Private ----------------
 
 	// Constructor and Initialisation ------------------------------
 
 	public function init() {
 
-		parent::init();
+        parent::init();
 
-		// View Path
-		$this->setViewPath( '@cmsgears/module-forum/admin/views/topic' );
+		// Views
+        $this->setViewPath( '@cmsgears/module-forum/admin/views/topic' );
 
 		// Permission
 		$this->crudPermission = ForumGlobal::PERM_FORUM_ADMIN;
 
 		// Config
-		$this->type			= CoreGlobal::TYPE_DEFAULT;
+		$this->parentType	= ForumGlobal::TYPE_TOPIC;
 		$this->templateType	= ForumGlobal::TYPE_TOPIC;
 		$this->title		= 'Topic';
 		$this->baseUrl		= 'topic';
@@ -78,14 +82,15 @@ class TopicController extends \cmsgears\core\admin\controllers\base\CrudControll
 		$this->metaService		= Yii::$app->factory->get( 'topicMetaService' );
 		$this->templateService	= Yii::$app->factory->get( 'templateService' );
 
-		$this->modelContentService	= Yii::$app->factory->get( 'modelContentService' );
-		$this->modelCategoryService	= Yii::$app->factory->get( 'modelCategoryService' );
+		$this->modelContentService = Yii::$app->factory->get( 'modelContentService' );
+
+		$this->forumService = Yii::$app->factory->get( 'forumService' );
 
 		// Sidebar
 		$this->sidebar = [ 'parent' => 'sidebar-forum', 'child' => 'topic' ];
 
 		// Return Url
-		$this->returnUrl = Url::previous( 'topics' );
+		$this->returnUrl = Url::previous( 'forum-topics' );
 		$this->returnUrl = isset( $this->returnUrl ) ? $this->returnUrl : Url::toRoute( [ '/forum/topic/all' ], true );
 
 		// Breadcrumbs
@@ -100,6 +105,7 @@ class TopicController extends \cmsgears\core\admin\controllers\base\CrudControll
 			'review' => [ [ 'label' => 'Topics', 'url' => $this->returnUrl ], [ 'label' => 'Review' ] ],
 			'gallery' => [ [ 'label' => 'Topics', 'url' => $this->returnUrl ], [ 'label' => 'Gallery' ] ],
 			'data' => [ [ 'label' => 'Topics', 'url' => $this->returnUrl ], [ 'label' => 'Data' ] ],
+			'attributes' => [ [ 'label' => 'Topics', 'url' => $this->returnUrl ], [ 'label' => 'Attributes' ] ],
 			'config' => [ [ 'label' => 'Topics', 'url' => $this->returnUrl ], [ 'label' => 'Config' ] ],
 			'settings' => [ [ 'label' => 'Topics', 'url' => $this->returnUrl ], [ 'label' => 'Settings' ] ]
 		];
@@ -115,23 +121,53 @@ class TopicController extends \cmsgears\core\admin\controllers\base\CrudControll
 
 	public function behaviors() {
 
-		$behaviors = parent::behaviors();
-
-		$behaviors[ 'rbac' ][ 'actions' ][ 'review' ] = [ 'permission' => $this->crudPermission ];
-		$behaviors[ 'rbac' ][ 'actions' ][ 'gallery' ] = [ 'permission' => $this->crudPermission ];
-
-		$behaviors[ 'verbs' ][ 'actions' ][ 'review' ] = [ 'get', 'post' ];
-		$behaviors[ 'verbs' ][ 'actions' ][ 'gallery' ] = [ 'get', 'post' ];
-
-		$behaviors[ 'activity' ] = [
-			'class' => ActivityBehavior::class,
-			'admin' => true,
-			'create' => [ 'create' ],
-			'update' => [ 'update' ],
-			'delete' => [ 'delete' ]
+		return [
+			'rbac' => [
+				'class' => Yii::$app->core->getRbacFilterClass(),
+				'actions' => [
+					'index' => [ 'permission' => $this->crudPermission ],
+					'all' => [ 'permission' => $this->crudPermission ],
+					'create' => [ 'permission' => $this->crudPermission ],
+					'update' => [ 'permission' => $this->crudPermission ],
+					'delete' => [ 'permission' => $this->crudPermission ],
+					'pdf' => [ 'permission' => $this->crudPermission ],
+					'import' => [ 'permission' => $this->crudPermission ],
+					'export' => [ 'permission' => $this->crudPermission ],
+					'gallery' => [ 'permission' => $this->crudPermission ],
+					'data' => [ 'permission' => $this->crudPermission ],
+					'attributes' => [ 'permission' => $this->crudPermission ],
+					'config' => [ 'permission' => $this->crudPermission ],
+					'settings' => [ 'permission' => $this->crudPermission ],
+					'review' => [ 'permission' => $this->crudPermission ]
+				]
+			],
+			'verbs' => [
+				'class' => VerbFilter::class,
+				'actions' => [
+					'index' => [ 'get', 'post' ],
+					'all' => [ 'get' ],
+					'create' => [ 'get', 'post' ],
+					'update' => [ 'get', 'post' ],
+					'delete' => [ 'get', 'post' ],
+					'pdf' => [ 'get' ],
+					'import' => [ 'post' ],
+					'export' => [ 'get' ],
+					'gallery' => [ 'get' ],
+					'data' => [ 'get', 'post' ],
+					'attributes' => [ 'get', 'post' ],
+					'config' => [ 'get', 'post' ],
+					'settings' => [ 'get', 'post' ],
+					'review' => [ 'get', 'post' ]
+				]
+			],
+			'activity' => [
+				'class' => ActivityBehavior::class,
+				'admin' => true,
+				'create' => [ 'create' ],
+				'update' => [ 'update' ],
+				'delete' => [ 'delete' ]
+			]
 		];
-
-		return $behaviors;
 	}
 
 	// yii\base\Controller ----
@@ -139,7 +175,11 @@ class TopicController extends \cmsgears\core\admin\controllers\base\CrudControll
 	public function actions() {
 
 		return [
-			'gallery' => [ 'class' => 'cmsgears\cms\common\actions\regular\gallery\Browse' ]
+			'gallery' => [ 'class' => 'cmsgears\cms\common\actions\gallery\Manage' ],
+			'data' => [ 'class' => 'cmsgears\cms\common\actions\data\data\Form' ],
+			'attributes' => [ 'class' => 'cmsgears\cms\common\actions\data\attribute\Form' ],
+			'config' => [ 'class' => 'cmsgears\cms\common\actions\data\config\Form' ],
+			'settings' => [ 'class' => 'cmsgears\cms\common\actions\data\setting\Form' ]
 		];
 	}
 
@@ -149,42 +189,67 @@ class TopicController extends \cmsgears\core\admin\controllers\base\CrudControll
 
 	// TopicController -----------------------
 
-	public function actionAll( $config = [] ) {
+	public function actionIndex() {
 
-		Url::remember( Yii::$app->request->getUrl(), 'topics' );
+		return $this->redirect( 'all' );
+	}
+
+	public function actionAll( $fid = null ) {
+
+		Url::remember( Yii::$app->request->getUrl(), 'forum-topics' );
 
 		$modelClass = $this->modelService->getModelClass();
 
-		$dataProvider = $this->modelService->getPageByType( $this->type );
+		$forum = null;
+
+		$dataProvider = $this->modelService->getPage();
+
+		if( isset( $fid ) ) {
+
+			$dataProvider = $this->modelService->getPageByForumId( $fid ) ;
+
+			$forum = $this->forumService->getById( $fid );
+		}
 
 		return $this->render( 'all', [
+			'forum' => $forum,
 			'dataProvider' => $dataProvider,
 			'visibilityMap' => $modelClass::$visibilityMap,
-			'statusMap' => $modelClass::$statusMap
+			'statusMap' => $modelClass::$statusMap,
+			'filterStatusMap' => $modelClass::$filterStatusMap
 		]);
 	}
 
-	public function actionCreate( $config = [] ) {
+	public function actionCreate( $fid = null ) {
 
 		$modelClass = $this->modelService->getModelClass();
 
-		$model = new $modelClass;
+		$model	= new $modelClass;
+		$forum	= null;
 
-		$model->siteId	= Yii::$app->core->siteId;
-		$model->type	= $this->type;
+		if( isset( $fid ) ) {
+
+			$forum = $this->forumService->getById( $fid );
+
+			$model->forumId = isset( $forum ) ? $forum->id : null;
+		}
 
 		$content = $this->modelContentService->getModelObject();
 
-		$avatar	 = File::loadFile( null, 'Avatar' );
-		$banner	 = File::loadFile( null, 'Banner' );
-		$video	 = File::loadFile( null, 'Video' );
+		$avatar		= File::loadFile( null, 'Avatar' );
+		$banner		= File::loadFile( null, 'Banner' );
+		$mbanner	= File::loadFile( null, 'MobileBanner' );
+		$video		= File::loadFile( null, 'Video' );
+		$mvideo		= File::loadFile( null, 'MobileVideo' );
 
 		if( $model->load( Yii::$app->request->post(), $model->getClassName() ) && $content->load( Yii::$app->request->post(), $content->getClassName() ) &&
 			$model->validate() && $content->validate() ) {
 
 			$this->model = $this->modelService->add( $model, [
 				'admin' => true, 'content' => $content,
-				'avatar' => $avatar, 'banner' => $banner, 'video' => $video
+				'publish' => $model->isActive(), 'avatar' => $avatar,
+				'banner' => $banner, 'mbanner' => $mbanner,
+				'video' => $video, 'mvideo' => $mvideo
 			]);
 
 			return $this->redirect( 'all' );
@@ -193,11 +258,14 @@ class TopicController extends \cmsgears\core\admin\controllers\base\CrudControll
 		$templatesMap = $this->templateService->getIdNameMapByType( $this->templateType, [ 'default' => true ] );
 
 		return $this->render( 'create', [
+			'forum' => $forum,
 			'model' => $model,
 			'content' => $content,
 			'avatar' => $avatar,
 			'banner' => $banner,
+			'mbanner' => $mbanner,
 			'video' => $video,
+			'mvideo' => $mvideo,
 			'visibilityMap' => $modelClass::$visibilityMap,
 			'statusMap' => $modelClass::$statusMap,
 			'templatesMap' => $templatesMap
@@ -213,19 +281,24 @@ class TopicController extends \cmsgears\core\admin\controllers\base\CrudControll
 		// Update/Render if exist
 		if( isset( $model ) ) {
 
-			$content = $model->modelContent;
+			$content	= $model->modelContent;
+			$template	= $content->template;
 
-			$avatar	 = File::loadFile( $model->avatar, 'Avatar' );
-			$banner	 = File::loadFile( $content->banner, 'Banner' );
-			$video	 = File::loadFile( $content->video, 'Video' );
+			$avatar		= File::loadFile( $model->avatar, 'Avatar' );
+			$banner		= File::loadFile( $content->banner, 'Banner' );
+			$mbanner	= File::loadFile( $content->mobileBanner, 'MobileBanner' );
+			$video		= File::loadFile( $content->video, 'Video' );
+			$mvideo		= File::loadFile( $content->mobileVideo, 'MobileVideo' );
 
 			if( $model->load( Yii::$app->request->post(), $model->getClassName() ) && $content->load( Yii::$app->request->post(), $content->getClassName() ) &&
 				$model->validate() && $content->validate() ) {
 
-				// Update Topic
+				// Update organization
 				$this->model = $this->modelService->update( $model, [
 					'admin' => true, 'content' => $content,
-					'avatar' => $avatar, 'banner' => $banner, 'video' => $video
+					'publish' => $model->isActive(), 'oldTemplate' => $template,
+					'avatar' => $avatar, 'banner' => $banner, 'mbanner' => $mbanner,
+					'video' => $video, 'mvideo' => $mvideo
 				]);
 
 				return $this->redirect( $this->returnUrl );
@@ -233,15 +306,22 @@ class TopicController extends \cmsgears\core\admin\controllers\base\CrudControll
 
 			$templatesMap = $this->templateService->getIdNameMapByType( $this->templateType, [ 'default' => true ] );
 
+			$tagTemplate	= $this->templateService->getGlobalBySlugType( CoreGlobal::TEMPLATE_TAG, $this->templateType );
+			$tagTemplateId	= isset( $tagTemplate ) ? $tagTemplate->id : null;
+
 			return $this->render( 'update', [
+				'forum' => $model->forum,
 				'model' => $model,
 				'content' => $content,
 				'avatar' => $avatar,
 				'banner' => $banner,
+				'mbanner' => $mbanner,
 				'video' => $video,
+				'mvideo' => $mvideo,
 				'visibilityMap' => $modelClass::$visibilityMap,
 				'statusMap' => $modelClass::$statusMap,
-				'templatesMap' => $templatesMap
+				'templatesMap' => $templatesMap,
+				'tagTemplateId' => $tagTemplateId
 			]);
 		}
 
@@ -279,11 +359,14 @@ class TopicController extends \cmsgears\core\admin\controllers\base\CrudControll
 			$templatesMap = $this->templateService->getIdNameMapByType( $this->templateType, [ 'default' => true ] );
 
 			return $this->render( 'delete', [
+				'forum' => $model->forum,
 				'model' => $model,
 				'content' => $content,
 				'avatar' => $model->avatar,
 				'banner' => $content->banner,
+				'mbanner' => $content->mobileBanner,
 				'video' => $content->video,
+				'mvideo' => $content->mobileVideo,
 				'visibilityMap' => $modelClass::$visibilityMap,
 				'statusMap' => $modelClass::$statusMap,
 				'templatesMap' => $templatesMap
@@ -311,7 +394,15 @@ class TopicController extends \cmsgears\core\admin\controllers\base\CrudControll
 
 				switch( $status ) {
 
-					case $modelClass::STATUS_SUBMITTED: {
+					case $modelClass::STATUS_ACCEPTED: {
+
+						$this->modelService->accept( $model, [ 'notify' => false ] );
+
+						Yii::$app->coreMailer->sendAcceptMail( $model, $email, $message );
+
+						break;
+					}
+					case $modelClass::STATUS_APPROVED: {
 
 						$this->modelService->approve( $model, [ 'notify' => false ] );
 
@@ -371,6 +462,7 @@ class TopicController extends \cmsgears\core\admin\controllers\base\CrudControll
 			if( $this->prettyReview && isset( $template ) ) {
 
 				return Yii::$app->templateManager->renderViewAdmin( $template, [
+					'forum' => $model->forum,
 					'model' => $model,
 					'content' => $content,
 					'userReview' => false
@@ -378,16 +470,19 @@ class TopicController extends \cmsgears\core\admin\controllers\base\CrudControll
 			}
 			else {
 
-				$templatesMap = $this->templateService->getIdNameMapByType( ForumGlobal::TYPE_TOPIC, [ 'default' => true ] );
+				$templatesMap = $this->templateService->getIdNameMapByType( $this->templateType, [ 'default' => true ] );
 
 				return $this->render( 'review', [
 					'modelService' => $this->modelService,
 					'metaService' => $this->metaService,
+					'forum' => $model->forum,
 					'model' => $model,
 					'content' => $content,
 					'avatar' => $model->avatar,
 					'banner' => $content->banner,
+					'mbanner' => $content->mobileBanner,
 					'video' => $content->video,
+					'mvideo' => $content->mobileVideo,
 					'visibilityMap' => $modelClass::$visibilityMap,
 					'statusMap' => $modelClass::$statusMap,
 					'templatesMap' => $templatesMap

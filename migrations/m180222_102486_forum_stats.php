@@ -53,6 +53,9 @@ class m180222_102486_forum_stats extends \cmsgears\core\common\base\Migration {
 		$columns 	= [ 'tableName', 'type', 'count' ];
 
 		$tableData	= [
+			[ $this->prefix . 'forum', 'rows', 0 ],
+			[ $this->prefix . 'forum_meta', 'rows', 0 ],
+			[ $this->prefix . 'forum_follower', 'rows', 0 ],
 			[ $this->prefix . 'forum_topic', 'rows', 0 ],
 			[ $this->prefix . 'forum_topic_meta', 'rows', 0 ],
 			[ $this->prefix . 'forum_topic_follower', 'rows', 0 ],
@@ -64,6 +67,9 @@ class m180222_102486_forum_stats extends \cmsgears\core\common\base\Migration {
 
 	public function down() {
 
+		Stats::deleteByTableName( ForumTables::getTableName( ForumTables::TABLE_FORUM ) );
+		Stats::deleteByTableName( ForumTables::getTableName( ForumTables::TABLE_FORUM_META ) );
+		Stats::deleteByTableName( ForumTables::getTableName( ForumTables::TABLE_FORUM_FOLLOWER ) );
 		Stats::deleteByTableName( ForumTables::getTableName( ForumTables::TABLE_TOPIC ) );
 		Stats::deleteByTableName( ForumTables::getTableName( ForumTables::TABLE_TOPIC_META ) );
 		Stats::deleteByTableName( ForumTables::getTableName( ForumTables::TABLE_TOPIC_FOLLOWER ) );

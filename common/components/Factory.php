@@ -69,7 +69,11 @@ class Factory extends \cmsgears\core\common\base\Component {
 
 		$factory = Yii::$app->factory->getContainer();
 
+		$factory->set( 'cmsgears\forum\common\services\interfaces\resources\IForumMetaService', 'cmsgears\forum\common\services\resources\ForumMetaService' );
+
 		$factory->set( 'cmsgears\forum\common\services\interfaces\resources\ITopicMetaService', 'cmsgears\forum\common\services\resources\TopicMetaService' );
+
+		$factory->set( 'cmsgears\forum\common\services\interfaces\resources\ITopicReplyService', 'cmsgears\forum\common\services\resources\TopicReplyService' );
 	}
 
 	/**
@@ -78,6 +82,8 @@ class Factory extends \cmsgears\core\common\base\Component {
 	public function registerMapperServices() {
 
 		$factory = Yii::$app->factory->getContainer();
+
+		$factory->set( 'cmsgears\forum\common\services\interfaces\mappers\IForumFollowerService', 'cmsgears\forum\common\services\mappers\ForumFollowerService' );
 
 		$factory->set( 'cmsgears\forum\common\services\interfaces\mappers\ITopicFollowerService', 'cmsgears\forum\common\services\mappers\TopicFollowerService' );
 	}
@@ -89,6 +95,8 @@ class Factory extends \cmsgears\core\common\base\Component {
 
 		$factory = Yii::$app->factory->getContainer();
 
+		$factory->set( 'cmsgears\forum\common\services\interfaces\entities\IForumService', 'cmsgears\forum\common\services\entities\ForumService' );
+
 		$factory->set( 'cmsgears\forum\common\services\interfaces\entities\ITopicService', 'cmsgears\forum\common\services\entities\TopicService' );
 	}
 
@@ -99,7 +107,11 @@ class Factory extends \cmsgears\core\common\base\Component {
 
 		$factory = Yii::$app->factory->getContainer();
 
+		$factory->set( 'forumMetaService', 'cmsgears\forum\common\services\resources\ForumMetaService' );
+
 		$factory->set( 'topicMetaService', 'cmsgears\forum\common\services\resources\TopicMetaService' );
+
+		$factory->set( 'topicReplyService', 'cmsgears\forum\common\services\resources\TopicReplyService' );
 	}
 
 	/**
@@ -108,6 +120,8 @@ class Factory extends \cmsgears\core\common\base\Component {
 	public function registerMapperAliases() {
 
 		$factory = Yii::$app->factory->getContainer();
+
+		$factory->set( 'forumFollowerService', 'cmsgears\forum\common\services\mappers\ForumFollowerService' );
 
 		$factory->set( 'topicFollowerService', 'cmsgears\forum\common\services\mappers\TopicFollowerService' );
 	}
@@ -118,6 +132,8 @@ class Factory extends \cmsgears\core\common\base\Component {
 	public function registerEntityAliases() {
 
 		$factory = Yii::$app->factory->getContainer();
+
+		$factory->set( 'forumService', 'cmsgears\forum\common\services\entities\ForumService' );
 
 		$factory->set( 'topicService', 'cmsgears\forum\common\services\entities\TopicService' );
 	}

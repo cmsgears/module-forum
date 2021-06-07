@@ -21,15 +21,23 @@ use cmsgears\forum\common\config\ForumGlobal;
 
 use cmsgears\core\common\models\interfaces\base\IAuthor;
 use cmsgears\core\common\models\interfaces\base\IFeatured;
+use cmsgears\core\common\models\interfaces\base\IOwner;
+use cmsgears\core\common\models\interfaces\resources\IContent;
 use cmsgears\core\common\models\interfaces\resources\IData;
 use cmsgears\core\common\models\interfaces\resources\IGridCache;
 use cmsgears\core\common\models\interfaces\resources\IVisual;
 use cmsgears\core\common\models\interfaces\mappers\IFile;
 
+use cmsgears\core\common\models\base\CoreTables;
+use cmsgears\core\common\models\entities\User;
 use cmsgears\forum\common\models\base\ForumTables;
+use cmsgears\forum\common\models\entities\Forum;
+use cmsgears\forum\common\models\entities\Topic;
 
 use cmsgears\core\common\models\traits\base\AuthorTrait;
 use cmsgears\core\common\models\traits\base\FeaturedTrait;
+use cmsgears\core\common\models\traits\base\OwnerTrait;
+use cmsgears\core\common\models\traits\resources\ContentTrait;
 use cmsgears\core\common\models\traits\resources\DataTrait;
 use cmsgears\core\common\models\traits\resources\GridCacheTrait;
 use cmsgears\core\common\models\traits\resources\VisualTrait;
@@ -41,8 +49,11 @@ use cmsgears\core\common\behaviors\AuthorBehavior;
  * The topic reply model stores the replies of topics.
  *
  * @property integer $id
+ * @property integer $forumId
  * @property integer $topicId
+ * @property integer $userId
  * @property integer $baseId
+ * @property integer $avatarId
  * @property integer $bannerId
  * @property integer $videoId
  * @property integer $createdBy
@@ -58,24 +69,29 @@ use cmsgears\core\common\behaviors\AuthorBehavior;
  * @property integer $ipNum
  * @property string $agent
  * @property integer $status
- * @property integer $fragment
  * @property integer $score
  * @property boolean $pinned
  * @property boolean $featured
+ * @property boolean $popular
  * @property boolean $anonymous
+ * @property string $field1
+ * @property string $field2
+ * @property string $field3
+ * @property string $field4
+ * @property string $field5
  * @property datetime $createdAt
  * @property datetime $modifiedAt
  * @property datetime $approvedAt
  * @property string $content
  * @property string $data
- * @property string $userAgent
  * @property string $gridCache
  * @property boolean $gridCacheValid
  * @property datetime $gridCachedAt
  *
  * @since 1.0.0
  */
-class TopicReply extends \cmsgears\core\common\models\base\Resource implements IAuthor, IData, IFeatured, IFile, IGridCache, IVisual {
+class TopicReply extends \cmsgears\core\common\models\base\Resource implements IAuthor,
+	IContent, IData, IFeatured, IFile, IGridCache, IOwner, IVisual {
 
 	// Variables ---------------------------------------------------
 
@@ -132,10 +148,12 @@ class TopicReply extends \cmsgears\core\common\models\base\Resource implements I
 	// Traits ------------------------------------------------------
 
 	use AuthorTrait;
+	use ContentTrait;
 	use DataTrait;
 	use FeaturedTrait;
 	use FileTrait;
 	use GridCacheTrait;
+	use OwnerTrait;
 	use VisualTrait;
 
 	// Constructor and Initialisation ------------------------------
@@ -176,20 +194,21 @@ class TopicReply extends \cmsgears\core\common\models\base\Resource implements I
 		// Model Rules
 		$rules = [
 			// Required, Safe
-			[ [ 'topicId', 'content' ], 'required' ],
-			[ [ 'id', 'content', 'data', 'gridCache' ], 'safe' ],
+			[ [ 'forumId', 'topicId', 'content' ], 'required' ],
+			[ [ 'id', 'content' ], 'safe' ],
 			// Email
 			[ 'email', 'email' ],
 			// Text Limit
 			[ [ 'phone', 'mobile' ], 'string', 'min' => 1, 'max' => Yii::$app->core->smallText ],
 			[ 'ip', 'string', 'min' => 1, 'max' => Yii::$app->core->mediumText ],
+			[ [ 'field1', 'field2', 'field3', 'field4', 'field5' ], 'string', 'min' => 1, 'max' => Yii::$app->core->largeText ],
 			[ [ 'name', 'email', 'agent' ], 'string', 'min' => 1, 'max' => Yii::$app->core->xxLargeText ],
 			[ [ 'title', 'avatarUrl', 'websiteUrl' ], 'string', 'min' => 1, 'max' => Yii::$app->core->xxxLargeText ],
 			// Other
 			[ [ 'avatarUrl', 'websiteUrl' ], 'url' ],
-			[ [ 'pinned', 'featured', 'anonymous', 'gridCacheValid' ], 'boolean' ],
-			[ [ 'ipNum', 'status', 'fragment', 'score' ], 'number', 'integerOnly' => true, 'min' => 0 ],
-			[ [ 'baseId', 'bannerId', 'videoId', 'parentId', 'createdBy', 'modifiedBy' ], 'number', 'integerOnly' => true, 'min' => 1 ],
+			[ [ 'pinned', 'featured', 'popular', 'anonymous', 'gridCacheValid' ], 'boolean' ],
+			[ [ 'ipNum', 'status', 'rating', 'order' ], 'number', 'integerOnly' => true, 'min' => 0 ],
+			[ [ 'forumId', 'topicId', 'userId', 'baseId', 'avatarId', 'bannerId', 'videoId', 'createdBy', 'modifiedBy' ], 'number', 'integerOnly' => true, 'min' => 1 ],
 			[ [ 'createdAt', 'modifiedAt', 'approvedAt', 'gridCachedAt' ], 'date', 'format' => Yii::$app->formatter->datetimeFormat ]
 		];
 
@@ -210,8 +229,13 @@ class TopicReply extends \cmsgears\core\common\models\base\Resource implements I
 	public function attributeLabels() {
 
 		return [
+			'forumId' => Yii::$app->forumMessage->getMessage( ForumGlobal::FIELD_FORUM ),
 			'topicId' => Yii::$app->forumMessage->getMessage( ForumGlobal::FIELD_TOPIC ),
+			'userId' => Yii::$app->coreMessage->getMessage( CoreGlobal::FIELD_USER ),
 			'baseId' => Yii::$app->coreMessage->getMessage( CoreGlobal::FIELD_PARENT ),
+			'avatarId' => Yii::$app->coreMessage->getMessage( CoreGlobal::FIELD_AVATAR ),
+			'bannerId' => Yii::$app->coreMessage->getMessage( CoreGlobal::FIELD_BANNER ),
+			'videoId' => Yii::$app->coreMessage->getMessage( CoreGlobal::FIELD_VIDEO ),
 			'title' => Yii::$app->coreMessage->getMessage( CoreGlobal::FIELD_TITLE ),
 			'name' => Yii::$app->coreMessage->getMessage( CoreGlobal::FIELD_NAME ),
 			'email' => Yii::$app->coreMessage->getMessage( CoreGlobal::FIELD_EMAIL ),
@@ -226,6 +250,7 @@ class TopicReply extends \cmsgears\core\common\models\base\Resource implements I
 			'score' => Yii::$app->coreMessage->getMessage( CoreGlobal::FIELD_RATING ),
 			'pinned' => Yii::$app->coreMessage->getMessage( CoreGlobal::FIELD_PINNED ),
 			'featured' => Yii::$app->coreMessage->getMessage( CoreGlobal::FIELD_FEATURED ),
+			'popular' => Yii::$app->coreMessage->getMessage( CoreGlobal::FIELD_POPULAR ),
 			'anonymous' => Yii::$app->coreMessage->getMessage( CoreGlobal::FIELD_ANONYMOUS ),
 			'content' => Yii::$app->coreMessage->getMessage( CoreGlobal::FIELD_MESSAGE ),
 			'data' => Yii::$app->coreMessage->getMessage( CoreGlobal::FIELD_DATA ),
@@ -242,11 +267,33 @@ class TopicReply extends \cmsgears\core\common\models\base\Resource implements I
 	// TopicReply ----------------------------
 
 	/**
+	 * Returns the corresponding user.
+	 *
+	 * @return User
+	 */
+	public function getUser() {
+
+		$userTable = CoreTables::TABLE_USER;
+
+		return $this->hasOne( User::class, [ 'id' => 'userId' ] )->from( "$userTable as user" );
+	}
+
+	public function getForum() {
+
+		return $this->hasOne( Forum::class, [ 'id' => 'forumId' ] );
+	}
+
+	public function getTopic() {
+
+		return $this->hasOne( Topic::class, [ 'id' => 'topicId' ] );
+	}
+
+	/**
 	 * Return the immediate parent reply.
 	 *
 	 * @return TopicReply
 	 */
-	public function getBaseReply() {
+	public function getBase() {
 
 		return $this->hasOne( TopicReply::class, [ 'id' => 'baseId' ] );
 	}
@@ -256,7 +303,7 @@ class TopicReply extends \cmsgears\core\common\models\base\Resource implements I
 	 *
 	 * @return TopicReply
 	 */
-	public function getChildReplies() {
+	public function getChildren() {
 
 		return $this->hasMany( TopicReply::class, [ 'baseId' => 'id' ] );
 	}
@@ -269,6 +316,31 @@ class TopicReply extends \cmsgears\core\common\models\base\Resource implements I
 	public function getStatusStr() {
 
 		return self::$statusMap[ $this->status ];
+	}
+
+	public function isNew() {
+
+		return $this->status == self::STATUS_NEW;
+	}
+
+	public function isSpam() {
+
+		return $this->status == self::STATUS_SPAM;
+	}
+
+	public function isBlocked() {
+
+		return $this->status == self::STATUS_BLOCKED;
+	}
+
+	public function isApproved() {
+
+		return $this->status == self::STATUS_APPROVED;
+	}
+
+	public function isTrash() {
+
+		return $this->status == self::STATUS_TRASH;
 	}
 
 	// Static Methods ----------------------------------------------
@@ -296,7 +368,7 @@ class TopicReply extends \cmsgears\core\common\models\base\Resource implements I
 	 */
 	public static function queryWithHasOne( $config = [] ) {
 
-		$relations = isset( $config[ 'relations' ] ) ? $config[ 'relations' ] : [ 'creator', 'modifier' ];
+		$relations = isset( $config[ 'relations' ] ) ? $config[ 'relations' ] : [ 'forum', 'topic', 'user' ];
 
 		$config[ 'relations' ] = $relations;
 

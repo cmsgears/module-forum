@@ -30,6 +30,7 @@ class MessageSource extends \cmsgears\core\common\base\MessageSource {
 
 	protected $messageDb = [
 		// Generic Fields
+		ForumGlobal::FIELD_FORUM => 'Forum',
 		ForumGlobal::FIELD_TOPIC => 'Topic'
 	];
 

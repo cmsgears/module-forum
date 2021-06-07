@@ -90,8 +90,17 @@ class TopicReplyService extends \cmsgears\core\common\services\base\ResourceServ
 
 	public function getPage( $config = [] ) {
 
+
+		$searchParam	= $config[ 'search-param' ] ?? 'keywords';
+		$searchColParam	= $config[ 'search-col-param' ] ?? 'search';
+
+		$defaultSort = isset( $config[ 'defaultSort' ] ) ? $config[ 'defaultSort' ] : [ 'id' => SORT_DESC ];
+
 		$modelClass	= static::$modelClass;
 		$modelTable	= $this->getModelTable();
+
+		$forumTable = Yii::$app->factory->get( 'forumService' )->getModelTable();
+		$topicTable = Yii::$app->factory->get( 'topicService' )->getModelTable();
 
 		// Sorting ----------
 
@@ -103,12 +112,30 @@ class TopicReplyService extends \cmsgears\core\common\services\base\ResourceServ
 					'default' => SORT_DESC,
 					'label' => 'Id'
 				],
+				'forum' => [
+					'asc' => [ "$forumTable.name" => SORT_ASC ],
+					'desc' => [ "$forumTable.name" => SORT_DESC ],
+					'default' => SORT_DESC,
+					'label' => 'Forum'
+				],
+				'topic' => [
+					'asc' => [ "$forumTable.topic" => SORT_ASC ],
+					'desc' => [ "$forumTable.topic" => SORT_DESC ],
+					'default' => SORT_DESC,
+					'label' => 'Topic'
+				],
 	            'user' => [
-					'asc' => [ "creator.name" => SORT_ASC ],
-					'desc' => [ "creator.name" => SORT_DESC ],
+					'asc' => [ "user.name" => SORT_ASC ],
+					'desc' => [ "user.name" => SORT_DESC ],
 					'default' => SORT_DESC,
 	                'label' => 'User'
 	            ],
+				'title' => [
+					'asc' => [ "$modelTable.title" => SORT_ASC ],
+					'desc' => [ "$modelTable.title" => SORT_DESC ],
+					'default' => SORT_DESC,
+					'label' => 'Title'
+				],
 				'name' => [
 					'asc' => [ "$modelTable.name" => SORT_ASC ],
 					'desc' => [ "$modelTable.name" => SORT_DESC ],
@@ -144,6 +171,12 @@ class TopicReplyService extends \cmsgears\core\common\services\base\ResourceServ
 					'desc' => [ "$modelTable.featured" => SORT_DESC ],
 					'default' => SORT_DESC,
 					'label' => 'Featured'
+				],
+				'popular' => [
+					'asc' => [ "$modelTable.popular" => SORT_ASC ],
+					'desc' => [ "$modelTable.popular" => SORT_DESC ],
+					'default' => SORT_DESC,
+					'label' => 'Popular'
 				],
 				'anonymous' => [
 					'asc' => [ "$modelTable.anonymous" => SORT_ASC ],
@@ -216,6 +249,12 @@ class TopicReplyService extends \cmsgears\core\common\services\base\ResourceServ
 
 					break;
 				}
+				case 'popular': {
+
+					$config[ 'conditions' ][ "$modelTable.popular" ] = true;
+
+					break;
+				}
 				case 'anonymous': {
 
 					$config[ 'conditions' ][ "$modelTable.anonymous" ] = true;
@@ -232,7 +271,8 @@ class TopicReplyService extends \cmsgears\core\common\services\base\ResourceServ
 		if( isset( $searchCol ) ) {
 
 			$search = [
-				'user' => "concat(creator.firstName, ' ', creator.lastName)",
+				'user' => "user.name",
+				'title' => "$modelTable.title",
 				'name' => "$modelTable.name",
 				'email' =>  "$modelTable.email",
 				'content' => "$modelTable.content"
@@ -244,7 +284,8 @@ class TopicReplyService extends \cmsgears\core\common\services\base\ResourceServ
 		// Reporting --------
 
 		$config[ 'report-col' ]	= [
-			'user' => "concat(creator.firstName, ' ', creator.lastName)",
+			'user' => "user.name",
+			'title' => "$modelTable.title",
 			'name' => "$modelTable.name",
 			'email' => "$modelTable.email",
 			'content' => "$modelTable.content",
@@ -311,13 +352,18 @@ class TopicReplyService extends \cmsgears\core\common\services\base\ResourceServ
 
 	public function create( $model, $config = [] ) {
 
-		$modelClass = static::$modelClass;
+		$avatar = isset( $config[ 'avatar' ] ) ? $config[ 'avatar' ] : null;
+		$banner = isset( $config[ 'banner' ] ) ? $config[ 'banner' ] : null;
+		$video	= isset( $config[ 'video' ] ) ? $config[ 'video' ] : null;
+
+		// Save Files
+		$this->fileService->saveFiles( $model, [ 'avatarId' => $avatar, 'bannerId' => $banner, 'videoId' => $video ] );
 
 		$model->agent	= Yii::$app->request->userAgent;
 		$model->ip		= Yii::$app->request->userIP;
 
 		// Default New
-		$model->status = $model->status ?? $modelClass::STATUS_NEW;
+		$model->status = $model->status ?? TopicReply::STATUS_NEW;
 
 		return parent::create( $model, $config );
 	}
@@ -328,21 +374,32 @@ class TopicReplyService extends \cmsgears\core\common\services\base\ResourceServ
 
 		$admin = isset( $config[ 'admin' ] ) ? $config[ 'admin' ] : false;
 
+		$avatar = isset( $config[ 'avatar' ] ) ? $config[ 'avatar' ] : null;
+		$banner = isset( $config[ 'banner' ] ) ? $config[ 'banner' ] : null;
+		$video	= isset( $config[ 'video' ] ) ? $config[ 'video' ] : null;
+
 		$attributes = isset( $config[ 'attributes' ] ) ? $config[ 'attributes' ] : [
-			'name', 'email', 'avatarUrl', 'websiteUrl', 'content'
+			'avatarId', 'bannerId', 'videoId', 'name', 'email',
+			'avatarUrl', 'websiteUrl', 'content',
+			'field1', 'field2', 'field3', 'field4', 'field5'
 		];
 
 		if( $admin ) {
 
-			$attributes	= ArrayHelper::merge( $attributes, [ 'status', 'score', 'pinned', 'featured' ] );
+			$attributes	= ArrayHelper::merge( $attributes, [
+				'status', 'order', 'pinned', 'featured', 'popular', 'anonymous', 'score'
+			]);
 		}
+
+		// Save Files
+		$this->fileService->saveFiles( $model, [ 'avatarId' => $avatar, 'bannerId' => $banner, 'videoId' => $video ] );
 
 		return parent::update( $model, [
 			'attributes' => $attributes
 		]);
 	}
 
-	// States
+	// States -----
 
 	public function updateStatus( $model, $status ) {
 
@@ -375,24 +432,57 @@ class TopicReplyService extends \cmsgears\core\common\services\base\ResourceServ
 		return $this->updateStatus( $model, TopicReply::STATUS_TRASH );
 	}
 
-	// Attributes
+	// Requests ---
 
-	public function updateSpamRequest( $model, $value = true ) {
+	public function spamRequest( $model, $parent, $config = [] ) {
 
-		$model->setDataMeta( CoreGlobal::META_COMMENT_SPAM_REQUEST, $value );
+		$parentType		= $config[ 'parentType' ];
+		$notify			= isset( $config[ 'notify' ] ) ? $config[ 'notify' ] : true;
+		$commentType	= isset( $config[ 'commentType' ] ) ? $config[ 'commentType' ] : ModelComment::TYPE_COMMENT;
+		$adminLink		= isset( $config[ 'adminLink' ] ) ? $config[ 'adminLink' ] : null;
 
-		$model->update();
+		if( $notify ) {
 
-		return $model;
+			$this->notifyAdmin( $model, [
+				'template' => CoreGlobal::TPL_COMMENT_REQUEST_SPAM,
+				'adminLink' => $adminLink,
+				'data' => [ 'parent' => $parent, 'parentType' => $parentType, 'commentType' => $commentType ]
+			]);
+		}
 	}
 
-	public function updateDeleteRequest( $model, $value = true ) {
+	public function approveRequest( $model, $parent, $config = [] ) {
 
-		$model->setDataMeta( CoreGlobal::META_COMMENT_DELETE_REQUEST, $value );
+		$parentType		= $config[ 'parentType' ];
+		$notify			= isset( $config[ 'notify' ] ) ? $config[ 'notify' ] : true;
+		$commentType	= isset( $config[ 'commentType' ] ) ? $config[ 'commentType' ] : ModelComment::TYPE_COMMENT;
+		$adminLink		= isset( $config[ 'adminLink' ] ) ? $config[ 'adminLink' ] : null;
 
-		$model->update();
+		if( $notify ) {
 
-		return $model;
+			$this->notifyAdmin( $model, [
+				'template' => CoreGlobal::TPL_COMMENT_REQUEST_APPROVE,
+				'adminLink' => $adminLink,
+				'data' => [ 'parent' => $parent, 'parentType' => $parentType, 'commentType' => $commentType ]
+			]);
+		}
+	}
+
+	public function deleteRequest( $model, $parent, $config = [] ) {
+
+		$parentType		= $config[ 'parentType' ];
+		$notify			= isset( $config[ 'notify' ] ) ? $config[ 'notify' ] : true;
+		$commentType	= isset( $config[ 'commentType' ] ) ? $config[ 'commentType' ] : ModelComment::TYPE_COMMENT;
+		$adminLink		= isset( $config[ 'adminLink' ] ) ? $config[ 'adminLink' ] : null;
+
+		if( $notify ) {
+
+			$this->notifyAdmin( $model, [
+				'template' => CoreGlobal::TPL_COMMENT_REQUEST_DELETE,
+				'adminLink' => $adminLink,
+				'data' => [ 'parent' => $parent, 'parentType' => $parentType, 'commentType' => $commentType ]
+			]);
+		}
 	}
 
 	// Delete -------------
@@ -459,6 +549,14 @@ class TopicReplyService extends \cmsgears\core\common\services\base\ResourceServ
 					case 'featured': {
 
 						$model->featured = true;
+
+						$model->update();
+
+						break;
+					}
+					case 'popular': {
+
+						$model->popular = true;
 
 						$model->update();
 

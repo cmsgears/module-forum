@@ -3,7 +3,7 @@
  * This file is part of CMSGears Framework. Please view License file distributed
  * with the source code for license details.
  *
- * @link https://www.cmsgears.org/
+ * @link https://www.cmsgears.forum/
  * @copyright Copyright (c) 2015 VulpineCode Technologies Pvt. Ltd.
  */
 
@@ -61,7 +61,7 @@ class TopicFollower extends \cmsgears\core\common\models\base\Follower {
 	// TopicFollower -------------------------
 
 	/**
-	 * Return corresponding group.
+	 * Return corresponding topic.
 	 *
 	 * @return \cmsgears\forum\common\models\entities\Topic
 	 */
@@ -81,7 +81,7 @@ class TopicFollower extends \cmsgears\core\common\models\base\Follower {
      */
 	public static function tableName() {
 
-		return OrgTables::getTableName( ForumTables::TABLE_TOPIC_FOLLOWER );
+		return ForumTables::getTableName( ForumTables::TABLE_TOPIC_FOLLOWER );
 	}
 
 	// CMG parent classes --------------------
