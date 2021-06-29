@@ -310,17 +310,7 @@ class Forum extends \cmsgears\core\common\models\base\Entity implements IApprova
 
 	// Validators ----------------------------
 
-	// Forum ----------------------------------
-
-	/**
-	 * Returns corresponding user associated with the forum.
-	 *
-	 * @return \cmsgears\core\common\models\entities\User
-	 */
-	public function getUser() {
-
-		return $this->hasOne( User::class, [ 'id' => 'userId' ] );
-	}
+	// Forum ---------------------------------
 
 	/**
 	 * Returns topics associated with the forum.
@@ -353,7 +343,7 @@ class Forum extends \cmsgears\core\common\models\base\Entity implements IApprova
 
 	// CMG parent classes --------------------
 
-	// Forum ----------------------------------
+	// Forum ---------------------------------
 
 	// Read - Query -----------
 

@@ -42,7 +42,6 @@ use cmsgears\cms\common\models\interfaces\mappers\IBlock;
 use cmsgears\cms\common\models\interfaces\mappers\IElement;
 use cmsgears\cms\common\models\interfaces\mappers\IWidget;
 
-use cmsgears\core\common\models\entities\User;
 use cmsgears\forum\common\models\base\ForumTables;
 use cmsgears\forum\common\models\resources\TopicMeta;
 use cmsgears\forum\common\models\resources\TopicFollower;
@@ -312,16 +311,6 @@ class Topic extends \cmsgears\core\common\models\base\Entity implements IApprova
 	// Validators ----------------------------
 
 	// Topic ---------------------------------
-
-	/**
-	 * Returns corresponding user associated with the product.
-	 *
-	 * @return \cmsgears\core\common\models\entities\User
-	 */
-	public function getUser() {
-
-		return $this->hasOne( User::class, [ 'id' => 'userId' ] );
-	}
 
 	/**
 	 * Returns corresponding forum.
