@@ -29,7 +29,8 @@ $tagWidgetSlug	= $this->context->tagWidgetSlug;
 
 Editor::widget();
 
-$forumName = isset( $model->forum ) ? $model->forum->name : null;
+$forumName	= isset( $model->forum ) ? $model->forum->name : null;
+$userName	= isset( $model->user ) ? $model->user->getName() . ', ' . $model->user->username . ', ' . $model->user->email : null;
 ?>
 <div class="box-crud-wrap row max-cols-100">
 	<div class="box-crud-wrap-main colf colf3x2">
@@ -40,6 +41,16 @@ $forumName = isset( $model->forum ) ? $model->forum->name : null;
 			</div>
 			<div class="box-content-wrap frm-split-40-60">
 				<div class="box-content">
+					<div class="row margin margin-bottom-medium">
+						<div class="row row-medium">
+							<?= Yii::$app->formDesigner->getAutoSuggest( $form, $model, 'userId', [
+								'placeholder' => 'Search User', 'icon' => 'cmti cmti-search',
+								'app' => 'core', 'controller' => 'user',
+								'value' => $userName, 'url' => 'core/user/auto-search'
+							]) ?>
+						</div>
+						<div class="note">Notes: Assign corresponding user if required.</div>
+					</div>
 					<div class="row max-cols-100">
 						<div class="col col3">
 							<?= $form->field( $model, 'name' ) ?>
