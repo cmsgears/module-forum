@@ -53,6 +53,9 @@ class m180222_102221_forum_data extends \cmsgears\core\common\base\Migration {
 		// Create RBAC and Site Members
 		$this->insertRolePermission();
 
+		// Create forum permission groups and CRUD permissions
+		$this->insertForumPermissions();
+
 		// Create topic permission groups and CRUD permissions
 		$this->insertTopicPermissions();
 
@@ -104,6 +107,73 @@ class m180222_102221_forum_data extends \cmsgears\core\common\base\Migration {
 		];
 
 		$this->batchInsert( $this->prefix . 'core_role_permission', $columns, $mappings );
+	}
+
+	private function insertForumPermissions() {
+
+		// Permissions
+		$columns = [ 'createdBy', 'modifiedBy', 'name', 'slug', 'type', 'icon', 'group', 'description', 'createdAt', 'modifiedAt' ];
+
+		$permissions = [
+			// Permission Groups - Default - Website - Individual, Organization
+			[ $this->master->id, $this->master->id, 'Manage Forums', ForumGlobal::PERM_FORUM_MANAGE, CoreGlobal::TYPE_SYSTEM, NULL, true, 'The permission manage newsletters allows user to manage newsletters from website.', DateUtil::getDateTime(), DateUtil::getDateTime() ],
+			[ $this->master->id, $this->master->id, 'Forum Author', ForumGlobal::PERM_FORUM_AUTHOR, CoreGlobal::TYPE_SYSTEM, NULL, true, 'The permission newsletter author allows user to perform crud operations of newsletter belonging to respective author from website.', DateUtil::getDateTime(), DateUtil::getDateTime() ],
+
+			// Forum Permissions - Hard Coded - Website - Individual, Organization
+			[ $this->master->id, $this->master->id, 'View Forums', ForumGlobal::PERM_FORUM_VIEW, CoreGlobal::TYPE_SYSTEM, NULL, false, 'The permission view forums allows users to view their forums from website.', DateUtil::getDateTime(), DateUtil::getDateTime() ],
+			[ $this->master->id, $this->master->id, 'Add Forum', ForumGlobal::PERM_FORUM_ADD, CoreGlobal::TYPE_SYSTEM, NULL, false, 'The permission add forum allows users to create forum from website.', DateUtil::getDateTime(), DateUtil::getDateTime() ],
+			[ $this->master->id, $this->master->id, 'Update Forum', ForumGlobal::PERM_FORUM_UPDATE, CoreGlobal::TYPE_SYSTEM, NULL, false, 'The permission update forum allows users to update forum from website.', DateUtil::getDateTime(), DateUtil::getDateTime() ],
+			[ $this->master->id, $this->master->id, 'Delete Forum', ForumGlobal::PERM_FORUM_DELETE, CoreGlobal::TYPE_SYSTEM, NULL, false, 'The permission delete forum allows users to delete forum from website.', DateUtil::getDateTime(), DateUtil::getDateTime() ],
+			[ $this->master->id, $this->master->id, 'Approve Forum', ForumGlobal::PERM_FORUM_APPROVE, CoreGlobal::TYPE_SYSTEM, NULL, false, 'The permission approve forum allows user to approve, freeze or block forum from website.', DateUtil::getDateTime(), DateUtil::getDateTime() ],
+			[ $this->master->id, $this->master->id, 'Print Forum', ForumGlobal::PERM_FORUM_PRINT, CoreGlobal::TYPE_SYSTEM, NULL, false, 'The permission print forum allows user to print forum from website.', DateUtil::getDateTime(), DateUtil::getDateTime() ],
+			[ $this->master->id, $this->master->id, 'Import Forums', ForumGlobal::PERM_FORUM_IMPORT, CoreGlobal::TYPE_SYSTEM, NULL, false, 'The permission import forums allows user to import forums from website.', DateUtil::getDateTime(), DateUtil::getDateTime() ],
+			[ $this->master->id, $this->master->id, 'Export Forums', ForumGlobal::PERM_FORUM_EXPORT, CoreGlobal::TYPE_SYSTEM, NULL, false, 'The permission export forums allows user to export forums from website.', DateUtil::getDateTime(), DateUtil::getDateTime() ]
+		];
+
+		$this->batchInsert( $this->prefix . 'core_permission', $columns, $permissions );
+
+		// Permission Groups
+		$forumManagerPerm	= Permission::findBySlugType( ForumGlobal::PERM_FORUM_MANAGE, CoreGlobal::TYPE_SYSTEM );
+		$forumAuthorPerm	= Permission::findBySlugType( ForumGlobal::PERM_FORUM_AUTHOR, CoreGlobal::TYPE_SYSTEM );
+
+		// Permissions
+		$vForumsPerm	= Permission::findBySlugType( ForumGlobal::PERM_FORUM_VIEW, CoreGlobal::TYPE_SYSTEM );
+		$aForumPerm		= Permission::findBySlugType( ForumGlobal::PERM_FORUM_ADD, CoreGlobal::TYPE_SYSTEM );
+		$uForumPerm		= Permission::findBySlugType( ForumGlobal::PERM_FORUM_UPDATE, CoreGlobal::TYPE_SYSTEM );
+		$dForumPerm		= Permission::findBySlugType( ForumGlobal::PERM_FORUM_DELETE, CoreGlobal::TYPE_SYSTEM );
+		$apForumPerm	= Permission::findBySlugType( ForumGlobal::PERM_FORUM_APPROVE, CoreGlobal::TYPE_SYSTEM );
+		$pForumPerm		= Permission::findBySlugType( ForumGlobal::PERM_FORUM_PRINT, CoreGlobal::TYPE_SYSTEM );
+		$iForumsPerm	= Permission::findBySlugType( ForumGlobal::PERM_FORUM_IMPORT, CoreGlobal::TYPE_SYSTEM );
+		$eForumsPerm	= Permission::findBySlugType( ForumGlobal::PERM_FORUM_EXPORT, CoreGlobal::TYPE_SYSTEM );
+
+		//Hierarchy
+
+		$columns = [ 'parentId', 'childId', 'rootId', 'parentType', 'lValue', 'rValue' ];
+
+		$hierarchy = [
+			// Forum Manager - Organization, Approver
+			[ null, null, $forumManagerPerm->id, CoreGlobal::TYPE_PERMISSION, 1, 18 ],
+			[ $forumManagerPerm->id, $vForumsPerm->id, $forumManagerPerm->id, CoreGlobal::TYPE_PERMISSION, 2, 3 ],
+			[ $forumManagerPerm->id, $aForumPerm->id, $forumManagerPerm->id, CoreGlobal::TYPE_PERMISSION, 4, 5 ],
+			[ $forumManagerPerm->id, $uForumPerm->id, $forumManagerPerm->id, CoreGlobal::TYPE_PERMISSION, 6, 7 ],
+			[ $forumManagerPerm->id, $dForumPerm->id, $forumManagerPerm->id, CoreGlobal::TYPE_PERMISSION, 8, 9 ],
+			[ $forumManagerPerm->id, $apForumPerm->id, $forumManagerPerm->id, CoreGlobal::TYPE_PERMISSION, 10, 11 ],
+			[ $forumManagerPerm->id, $pForumPerm->id, $forumManagerPerm->id, CoreGlobal::TYPE_PERMISSION, 12, 13 ],
+			[ $forumManagerPerm->id, $iForumsPerm->id, $forumManagerPerm->id, CoreGlobal::TYPE_PERMISSION, 14, 15 ],
+			[ $forumManagerPerm->id, $eForumsPerm->id, $forumManagerPerm->id, CoreGlobal::TYPE_PERMISSION, 16, 17 ],
+
+			// Forum Author- Individual
+			[ null, null, $forumAuthorPerm->id, CoreGlobal::TYPE_PERMISSION, 1, 16 ],
+			[ $forumAuthorPerm->id, $vForumsPerm->id, $forumAuthorPerm->id, CoreGlobal::TYPE_PERMISSION, 2, 3 ],
+			[ $forumAuthorPerm->id, $aForumPerm->id, $forumAuthorPerm->id, CoreGlobal::TYPE_PERMISSION, 4, 5 ],
+			[ $forumAuthorPerm->id, $uForumPerm->id, $forumAuthorPerm->id, CoreGlobal::TYPE_PERMISSION, 6, 7 ],
+			[ $forumAuthorPerm->id, $dForumPerm->id, $forumAuthorPerm->id, CoreGlobal::TYPE_PERMISSION, 8, 9 ],
+			[ $forumAuthorPerm->id, $pForumPerm->id, $forumAuthorPerm->id, CoreGlobal::TYPE_PERMISSION, 10, 11 ],
+			[ $forumAuthorPerm->id, $iForumsPerm->id, $forumAuthorPerm->id, CoreGlobal::TYPE_PERMISSION, 12, 13 ],
+			[ $forumAuthorPerm->id, $eForumsPerm->id, $forumAuthorPerm->id, CoreGlobal::TYPE_PERMISSION, 14, 15 ]
+		];
+
+		$this->batchInsert( $this->prefix . 'core_model_hierarchy', $columns, $hierarchy );
 	}
 
 	private function insertTopicPermissions() {
@@ -206,6 +276,8 @@ class m180222_102221_forum_data extends \cmsgears\core\common\base\Migration {
 		$columns = [ 'createdBy', 'modifiedBy', 'name', 'slug', 'icon', 'type', 'description', 'active', 'renderer', 'fileRender', 'layout', 'layoutGroup', 'viewPath', 'createdAt', 'modifiedAt', 'message', 'content', 'data' ];
 
 		$templates = [
+			// Forum
+			[ $this->master->id, $this->master->id, 'New Forum', ForumGlobal::TPL_NOTIFY_FORUM_NEW, null, 'notification', 'Trigger Notification and Email to Admin, when new Forum is created by site users.', true, 'twig', 0, null, false, null, DateUtil::getDateTime(), DateUtil::getDateTime(), 'New Forum - <b>{{model.displayName}}</b>', 'New Forum - <b>{{model.displayName}}</b> has been submitted for registration. {% if config.link %}Please follow this <a href="{{config.link}}">link</a>.{% endif %}{% if config.adminLink %}Please follow this <a href="{{config.adminLink}}">link</a>.{% endif %}', '{"config":{"admin":"1","user":"0","direct":"0","adminEmail":"1","userEmail":"0","directEmail":"0"}}' ],
 			// Topic
 			[ $this->master->id, $this->master->id, 'New Topic', ForumGlobal::TPL_NOTIFY_TOPIC_NEW, null, 'notification', 'Trigger Notification and Email to Admin, when new Topic is created by site users.', true, 'twig', 0, null, false, null, DateUtil::getDateTime(), DateUtil::getDateTime(), 'New Topic - <b>{{model.displayName}}</b>', 'New Topic - <b>{{model.displayName}}</b> has been submitted for registration. {% if config.link %}Please follow this <a href="{{config.link}}">link</a>.{% endif %}{% if config.adminLink %}Please follow this <a href="{{config.adminLink}}">link</a>.{% endif %}', '{"config":{"admin":"1","user":"0","direct":"0","adminEmail":"1","userEmail":"0","directEmail":"0"}}' ]
 		];

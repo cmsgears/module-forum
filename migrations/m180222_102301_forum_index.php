@@ -35,6 +35,21 @@ class m180222_102301_forum_index extends \cmsgears\core\common\base\Migration {
 
     private function upPrimary() {
 
+        // Forum
+        $this->createIndex( 'idx_' . $this->prefix . 'forum_name', $this->prefix . 'forum_forum', 'name' );
+        $this->createIndex( 'idx_' . $this->prefix . 'forum_slug', $this->prefix . 'forum_forum', 'slug' );
+		$this->createIndex( 'idx_' . $this->prefix . 'forum_type', $this->prefix . 'forum_forum', 'type' );
+		//$this->createIndex( 'idx_' . $this->prefix . 'forum_icon', $this->prefix . 'forum_forum', 'icon' );
+
+		// Forum Meta
+		$this->createIndex( 'idx_' . $this->prefix . 'forum_meta_name', $this->prefix . 'forum_forum_meta', 'name' );
+		$this->createIndex( 'idx_' . $this->prefix . 'forum_meta_type', $this->prefix . 'forum_forum_meta', 'type' );
+		//$this->createIndex( 'idx_' . $this->prefix . 'forum_meta_label', $this->prefix . 'forum_forum_meta', 'label' );
+		//$this->createIndex( 'idx_' . $this->prefix . 'forum_meta_vtype', $this->prefix . 'forum_forum_meta', 'valueType' );
+		//$this->createIndex( 'idx_' . $this->prefix . 'forum_meta_mit', $this->prefix . 'forum_forum_meta', [ 'modelId', 'type' ] );
+		//$this->createIndex( 'idx_' . $this->prefix . 'forum_meta_mitn', $this->prefix . 'forum_forum_meta', [ 'modelId', 'type', 'name' ] );
+		//$this->execute( 'ALTER TABLE ' . $this->prefix . 'forum_forum_meta' . ' ADD FULLTEXT ' . 'idx_' . $this->prefix . 'forum_meta_search' . '(name ASC, value ASC)' );
+
         // Topic
         $this->createIndex( 'idx_' . $this->prefix . 'topic_name', $this->prefix . 'forum_topic', 'name' );
         $this->createIndex( 'idx_' . $this->prefix . 'topic_slug', $this->prefix . 'forum_topic', 'slug' );
@@ -63,6 +78,21 @@ class m180222_102301_forum_index extends \cmsgears\core\common\base\Migration {
     }
 
     private function downPrimary() {
+
+        // Forum
+        $this->dropIndex( 'idx_' . $this->prefix . 'forum_name', $this->prefix . 'forum_forum' );
+        $this->dropIndex( 'idx_' . $this->prefix . 'forum_slug', $this->prefix . 'forum_forum' );
+		$this->dropIndex( 'idx_' . $this->prefix . 'forum_type', $this->prefix . 'forum_forum' );
+		//$this->dropIndex( 'idx_' . $this->prefix . 'forum_icon', $this->prefix . 'forum_forum' );
+
+		// Forum Meta
+		$this->dropIndex( 'idx_' . $this->prefix . 'forum_meta_name', $this->prefix . 'forum_forum_meta' );
+		$this->dropIndex( 'idx_' . $this->prefix . 'forum_meta_type', $this->prefix . 'forum_forum_meta' );
+		//$this->dropIndex( 'idx_' . $this->prefix . 'forum_meta_label', $this->prefix . 'forum_forum_meta' );
+		//$this->dropIndex( 'idx_' . $this->prefix . 'forum_meta_vtype', $this->prefix . 'forum_forum_meta' );
+		//$this->dropIndex( 'idx_' . $this->prefix . 'forum_meta_mit', $this->prefix . 'forum_forum_meta' );
+		//$this->dropIndex( 'idx_' . $this->prefix . 'forum_meta_mitn', $this->prefix . 'forum_forum_meta' );
+		//$this->dropIndex( 'idx_' . $this->prefix . 'forum_meta_search', $this->prefix . 'forum_forum_meta' );
 
         // Topic
         $this->dropIndex( 'idx_' . $this->prefix . 'topic_name', $this->prefix . 'forum_topic' );

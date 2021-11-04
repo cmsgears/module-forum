@@ -8,7 +8,9 @@
  */
 
 // CMG Imports
-use cmsgears\core\common\models\resources\Stats;
+use cmsgears\core\common\config\CoreGlobal;
+
+use cmsgears\core\common\models\resources\ModelStats;
 use cmsgears\forum\common\models\base\ForumTables;
 
 /**
@@ -50,24 +52,30 @@ class m180222_102486_forum_stats extends \cmsgears\core\common\base\Migration {
 
 	private function insertTables() {
 
-		$columns 	= [ 'tableName', 'type', 'count' ];
+		$columns 	= [ 'parentId', 'parentType', 'name', 'type', 'count' ];
 
 		$tableData	= [
-			[ $this->prefix . 'forum_topic', 'rows', 0 ],
-			[ $this->prefix . 'forum_topic_meta', 'rows', 0 ],
-			[ $this->prefix . 'forum_topic_follower', 'rows', 0 ],
-			[ $this->prefix . 'forum_topic_reply', 'rows', 0 ]
+			[ 1, CoreGlobal::TYPE_SITE, $this->prefix . 'forum', 'rows', 0 ],
+			[ 1, CoreGlobal::TYPE_SITE, $this->prefix . 'forum_meta', 'rows', 0 ],
+			[ 1, CoreGlobal::TYPE_SITE, $this->prefix . 'forum_follower', 'rows', 0 ],
+			[ 1, CoreGlobal::TYPE_SITE, $this->prefix . 'forum_topic', 'rows', 0 ],
+			[ 1, CoreGlobal::TYPE_SITE, $this->prefix . 'forum_topic_meta', 'rows', 0 ],
+			[ 1, CoreGlobal::TYPE_SITE, $this->prefix . 'forum_topic_follower', 'rows', 0 ],
+			[ 1, CoreGlobal::TYPE_SITE, $this->prefix . 'forum_topic_reply', 'rows', 0 ]
 		];
 
-		$this->batchInsert( $this->prefix . 'core_stats', $columns, $tableData );
+		$this->batchInsert( $this->prefix . 'core_model_stats', $columns, $tableData );
 	}
 
 	public function down() {
 
-		Stats::deleteByTableName( ForumTables::getTableName( ForumTables::TABLE_TOPIC ) );
-		Stats::deleteByTableName( ForumTables::getTableName( ForumTables::TABLE_TOPIC_META ) );
-		Stats::deleteByTableName( ForumTables::getTableName( ForumTables::TABLE_TOPIC_FOLLOWER ) );
-		Stats::deleteByTableName( ForumTables::getTableName( ForumTables::TABLE_TOPIC_REPLY ) );
+		ModelStats::deleteByTable( ForumTables::getTableName( ForumTables::TABLE_FORUM ) );
+		ModelStats::deleteByTable( ForumTables::getTableName( ForumTables::TABLE_FORUM_META ) );
+		ModelStats::deleteByTable( ForumTables::getTableName( ForumTables::TABLE_FORUM_FOLLOWER ) );
+		ModelStats::deleteByTable( ForumTables::getTableName( ForumTables::TABLE_TOPIC ) );
+		ModelStats::deleteByTable( ForumTables::getTableName( ForumTables::TABLE_TOPIC_META ) );
+		ModelStats::deleteByTable( ForumTables::getTableName( ForumTables::TABLE_TOPIC_FOLLOWER ) );
+		ModelStats::deleteByTable( ForumTables::getTableName( ForumTables::TABLE_TOPIC_REPLY ) );
 	}
 
 }

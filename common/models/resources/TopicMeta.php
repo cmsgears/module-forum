@@ -14,8 +14,6 @@ use cmsgears\forum\common\models\base\ForumTables;
 use cmsgears\forum\common\models\entities\Topic;
 
 /**
- * TopicMeta stores meta and attributes specific to topics.
- *
  * @inheritdoc
  */
 class TopicMeta extends \cmsgears\core\common\models\base\Meta {
@@ -61,13 +59,24 @@ class TopicMeta extends \cmsgears\core\common\models\base\Meta {
 	// TopicMeta -----------------------------
 
 	/**
-	 * Return corresponding topic.
+	 * Return corresponding forum branch.
 	 *
 	 * @return \cmsgears\forum\common\models\entities\Topic
 	 */
 	public function getParent() {
 
 		return $this->hasOne( Topic::class, [ 'id' => 'modelId' ] );
+	}
+
+	/**
+	 * Check whether meta belongs to given topic.
+	 *
+	 * @param Topic $topic
+	 * @return boolean
+	 */
+	public function belongsToTopic( $topic ) {
+
+		return $this->modelId == $topic->id;
 	}
 
 	// Static Methods ----------------------------------------------

@@ -18,6 +18,9 @@ class Mailer extends \cmsgears\core\common\base\Mailer {
 
 	// Global -----------------
 
+	const MAIL_FORUM_CREATE		= 'forum/create';
+	const MAIL_FORUM_REGISTER	= 'forum/register';
+
 	const MAIL_TOPIC_CREATE		= 'topic/create';
 	const MAIL_TOPIC_REGISTER	= 'topic/register';
 
@@ -41,6 +44,38 @@ class Mailer extends \cmsgears\core\common\base\Mailer {
 
 	// Mailer --------------------------------
 
+	public function sendCreateForumMail( $forum ) {
+
+		$fromEmail	= $this->mailProperties->getSenderEmail();
+		$fromName	= $this->mailProperties->getSenderName();
+
+		$email = $forum->getEmail();
+
+		// Send Mail
+		$this->getMailer()->compose( self::MAIL_FORUM_CREATE, [ 'coreProperties' => $this->coreProperties, 'forum' => $forum ] )
+			->setTo( $email )
+			->setFrom( [ $fromEmail => $fromName ] )
+			->setSubject( "Forum Registration | " . $this->coreProperties->getSiteName() )
+			//->setTextBody( "text" )
+			->send();
+	}
+
+	public function sendRegisterForumMail( $forum ) {
+
+		$fromEmail	= $this->mailProperties->getSenderEmail();
+		$fromName	= $this->mailProperties->getSenderName();
+
+		$email = $forum->getEmail();
+
+		// Send Mail
+		$this->getMailer()->compose( self::MAIL_FORUM_REGISTER, [ 'coreProperties' => $this->coreProperties, 'forum' => $forum ] )
+			->setTo( $email )
+			->setFrom( [ $fromEmail => $fromName ] )
+			->setSubject( "Forum Registration | " . $this->coreProperties->getSiteName() )
+			//->setTextBody( "text" )
+			->send();
+	}
+
 	public function sendCreateTopicMail( $topic ) {
 
 		$fromEmail	= $this->mailProperties->getSenderEmail();
@@ -57,7 +92,7 @@ class Mailer extends \cmsgears\core\common\base\Mailer {
 			->send();
 	}
 
-	public function sendRegisterTopicMail( $topic, $admin ) {
+	public function sendRegisterTopicMail( $topic ) {
 
 		$fromEmail	= $this->mailProperties->getSenderEmail();
 		$fromName	= $this->mailProperties->getSenderName();

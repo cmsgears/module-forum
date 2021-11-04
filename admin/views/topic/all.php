@@ -10,26 +10,29 @@ $this->title	= "{$title}s | " . $coreProperties->getSiteTitle();
 $apixBase		= $this->context->apixBase;
 $baseUrl		= $this->context->baseUrl;
 
+$addUrl = isset( $forum ) ? "create?fid=$forum->id" : 'create';
+
 // View Templates
 $moduleTemplates	= '@cmsgears/module-forum/admin/views/templates';
 $themeTemplates		= '@themes/admin/views/templates';
 ?>
 <?= DataGrid::widget([
-	'dataProvider' => $dataProvider, 'baseUrl' => $baseUrl, 'add' => true, 'addUrl' => 'create', 'data' => [],
+	'dataProvider' => $dataProvider, 'baseUrl' => $baseUrl, 'add' => true, 'addUrl' => $addUrl, 'data' => [ 'forum' => $forum ],
 	'title' => "{$title}s", 'options' => [ 'class' => 'grid-data grid-data-admin' ],
-	'searchColumns' => [ 'name' => 'Name', 'title' => 'Title', 'desc' => 'Description', 'summary' => 'Summary', 'content' => 'Content' ],
+	'searchColumns' => [
+		'name' => 'Name', 'title' => 'Title', 'desc' => 'Description',
+		'summary' => 'Summary', 'content' => 'Content'
+	],
 	'sortColumns' => [
-		'name' => 'Name', 'title' => 'Title', 'status' => 'Status', 'template' => 'Template',
+		'name' => 'Name', 'title' => 'Title', 'forum' => 'Forum', 'status' => 'Status', 'template' => 'Template',
 		'visibility' => 'Visibility', 'order' => 'Order', 'pinned' => 'Pinned', 'featured' => 'Featured',
-		'cdate' => 'Created At', 'udate' => 'Updated At'
+		'popular' => 'Popular', 'cdate' => 'Created At', 'udate' => 'Updated At'
 	],
 	'filters' => [
-		'status' => [
-			'submitted' => 'Submitted', 'rejected' => 'Rejected', 're-submitted' => 'Re Submitted',
-			'confirmed' => 'Confirmed', 'active' => 'Active', 'frozen' => 'Frozen', 'uplift-freeze' => 'Uplift Freeze',
-			'blocked' => 'Blocked', 'uplift-block' => 'Uplift Block', 'terminated' => 'Terminated'
-		],
-		'model' => [ 'pinned' => 'Pinned', 'featured' => 'Featured' ]
+		'status' => $filterStatusMap,
+		'model' => [
+			'pinned' => 'Pinned', 'featured' => 'Featured', 'popular' => 'Popular'
+		]
 	],
 	'reportColumns' => [
 		'name' => [ 'title' => 'Name', 'type' => 'text' ],
@@ -41,26 +44,34 @@ $themeTemplates		= '@themes/admin/views/templates';
 		'visibility' => [ 'title' => 'Visibility', 'type' => 'select', 'options' => $visibilityMap ],
 		'order' => [ 'title' => 'Order', 'type' => 'range' ],
 		'pinned' => [ 'title' => 'Pinned', 'type' => 'flag' ],
-		'featured' => [ 'title' => 'Featured', 'type' => 'flag' ]
+		'featured' => [ 'title' => 'Featured', 'type' => 'flag' ],
+		'popular' => [ 'title' => 'Popular', 'type' => 'flag' ]
 	],
-	'bulkPopup' => 'popup-grid-bulk', 'bulkActions' => [
-		'status' => [ 'confirm' => 'Confirm', 'reject' => 'Reject', 'activate' => 'Activate', 'freeze' => 'Freeze', 'block' => 'Block', 'terminate' => 'Terminate' ],
-		'model' => [ 'pinned' => 'Pinned', 'featured' => 'Featured', 'delete' => 'Delete' ]
+	'bulkPopup' => 'popup-grid-bulk',
+	'bulkActions' => [
+		'status' => [
+			'accept' => 'Accept', 'reject' => 'Reject',
+			'confirm' => 'Confirm', 'approve' => 'Approve',
+			'activate' => 'Activate', 'freeze' => 'Freeze', 'block' => 'Block',
+			'terminate' => 'Terminate'
+		],
+		'model' => [
+			'pinned' => 'Pinned', 'featured' => 'Featured', 'popular' => 'Popular',
+			'delete' => 'Delete'
+		]
 	],
 	'header' => false, 'footer' => true,
-	'grid' => true, 'columns' => [ 'root' => 'colf colf15', 'factor' => [ null, null, 'x2', 'x2', 'x2', null, null, null, null, 'x3' ] ],
+	'grid' => true, 'columns' => [ 'root' => 'colf colf15', 'factor' => [ null, 'x2', 'x2', 'x2', 'x2', null, null, null, null, 'x2' ] ],
 	'gridColumns' => [
 		'bulk' => 'Action',
-		'icon' => [ 'title' => 'Icon', 'generate' => function( $model ) {
-			$icon = "<div class='align align-center'><i class=\"$model->icon\"></i></div>" ; return $icon;
-		}],
 		'name' => 'Name',
 		'title' => 'Title',
+		'forum' => [ 'title' => 'Forum', 'generate' => function( $model ) { return $model->forum->name; } ],
 		'template' => [ 'title' => 'Template', 'generate' => function( $model ) { return $model->modelContent->getTemplateName(); } ],
 		'visibility' => [ 'title' => 'Visibility', 'generate' => function( $model ) { return $model->getVisibilityStr(); } ],
-		'status' => [ 'title' => 'Status', 'generate' => function( $model ) { return $model->getStatusStr(); } ],
-		'pinned' => [ 'title' => 'Pinned', 'generate' => function( $model ) { return $model->getPinnedStr(); } ],
 		'featured' => [ 'title' => 'Featured', 'generate' => function( $model ) { return $model->getFeaturedStr(); } ],
+		'popular' => [ 'title' => 'Popular', 'generate' => function( $model ) { return $model->getPopularStr(); } ],
+		'status' => [ 'title' => 'Status', 'generate' => function( $model ) { return $model->getStatusStr(); } ],
 		'actions' => 'Actions'
 	],
 	'gridCards' => [ 'root' => 'col col12', 'factor' => 'x3' ],

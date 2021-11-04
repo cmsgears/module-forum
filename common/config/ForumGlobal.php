@@ -28,12 +28,16 @@ class ForumGlobal {
 
 	// Grouping by type ------------------------------------------------
 
-	const TYPE_TOPIC		= 'topic';
-	const TYPE_TOPIC_REPLY	= 'topic-reply';
+	const TYPE_FORUM	= 'forum';
+	const TYPE_TOPIC	= 'topic';
+
+	const TYPE_TOPIC_REPLY = 'topic-reply';
 
 	// Templates -------------------------------------------------------
 
 	const TEMPLATE_FORUM = 'forum';
+
+	const TPL_NOTIFY_FORUM_NEW = 'forum-new';
 
 	const TPL_NOTIFY_TOPIC_NEW = 'topic-new';
 
@@ -47,6 +51,19 @@ class ForumGlobal {
 
 	// Forum
 	const PERM_FORUM_ADMIN		= 'admin-forum';
+
+
+	const PERM_FORUM_MANAGE		= 'manage-forums';
+	const PERM_FORUM_AUTHOR		= 'forum-author';
+
+	const PERM_FORUM_VIEW		= 'view-forums';
+	const PERM_FORUM_ADD		= 'add-forum';
+	const PERM_FORUM_UPDATE		= 'update-forum';
+	const PERM_FORUM_DELETE		= 'delete-forum';
+	const PERM_FORUM_APPROVE	= 'approve-forum';
+	const PERM_FORUM_PRINT		= 'print-forum';
+	const PERM_FORUM_IMPORT		= 'import-forums';
+	const PERM_FORUM_EXPORT		= 'export-forums';
 
 	const PERM_TOPIC_MANAGE		= 'manage-topics';
 	const PERM_TOPIC_AUTHOR		= 'topic-author';
@@ -71,6 +88,8 @@ class ForumGlobal {
 	// Model Fields ----------------------------------------------------
 
 	// Generic Fields
+	const FIELD_FORUM = 'forumField';
+
 	const FIELD_TOPIC = 'topicField';
 
 }

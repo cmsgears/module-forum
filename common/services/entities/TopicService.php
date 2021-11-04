@@ -11,20 +11,26 @@ namespace cmsgears\forum\common\services\entities;
 
 // Yii Imports
 use Yii;
-use yii\helpers\ArrayHelper;
+use yii\data\Sort;
 
 // CMG Imports
 use cmsgears\core\common\config\CoreGlobal;
 use cmsgears\forum\common\config\ForumGlobal;
 
-use cmsgears\core\common\services\interfaces\resources\IFileService;
+use cmsgears\forum\common\models\resources\TopicMeta;
+
 use cmsgears\forum\common\services\interfaces\entities\ITopicService;
 use cmsgears\forum\common\services\interfaces\resources\ITopicMetaService;
+use cmsgears\forum\common\services\interfaces\mappers\ITopicFollowerService;
 
+use cmsgears\core\common\services\interfaces\resources\IFileService;
+
+use cmsgears\core\common\services\traits\base\SimilarTrait;
+use cmsgears\core\common\services\traits\mappers\CategoryTrait;
 use cmsgears\core\common\services\traits\resources\MetaTrait;
 
 /**
- * TopicService provide service methods of topic model.
+ * TopicService provide service methods of branch model.
  *
  * @since 1.0.0
  */
@@ -52,19 +58,24 @@ class TopicService extends \cmsgears\cms\common\services\base\ContentService imp
 
 	protected $fileService;
 	protected $metaService;
+	protected $followerService;
 
 	// Private ----------------
 
 	// Traits ------------------------------------------------------
 
+	use CategoryTrait;
 	use MetaTrait;
+	use SimilarTrait;
 
 	// Constructor and Initialisation ------------------------------
 
-	public function __construct( IFileService $fileService, ITopicMetaService $metaService, $config = [] ) {
+	public function __construct( IFileService $fileService, ITopicMetaService $metaService, ITopicFollowerService $followerService, $config = [] ) {
 
 		$this->fileService	= $fileService;
 		$this->metaService	= $metaService;
+
+		$this->followerService = $followerService;
 
 		parent::__construct( $config );
 	}
@@ -83,6 +94,152 @@ class TopicService extends \cmsgears\cms\common\services\base\ContentService imp
 
 	// Data Provider ------
 
+	public function getPage( $config = [] ) {
+
+		$searchParam	= $config[ 'search-param' ] ?? 'keywords';
+		$searchColParam	= $config[ 'search-col-param' ] ?? 'search';
+
+		$defaultSort = isset( $config[ 'defaultSort' ] ) ? $config[ 'defaultSort' ] : [ 'id' => SORT_DESC ];
+
+		$modelClass	= static::$modelClass;
+		$modelTable	= $this->getModelTable();
+
+		$contentTable	= Yii::$app->factory->get( 'modelContentService' )->getModelTable();
+		$templateTable	= Yii::$app->factory->get( 'templateService' )->getModelTable();
+
+		$forumTable = Yii::$app->factory->get( 'forumService' )->getModelTable();
+
+		$sort = new Sort([
+			'attributes' => [
+				'id' => [
+					'asc' => [ "$modelTable.id" => SORT_ASC ],
+					'desc' => [ "$modelTable.id" => SORT_DESC ],
+					'default' => SORT_DESC,
+					'label' => 'Id'
+				],
+				'forum' => [
+					'asc' => [ "$forumTable.name" => SORT_ASC ],
+					'desc' => [ "$forumTable.name" => SORT_DESC ],
+					'default' => SORT_DESC,
+					'label' => 'Forum'
+				],
+				'template' => [
+					'asc' => [ "$templateTable.name" => SORT_ASC ],
+					'desc' => [ "$templateTable.name" => SORT_DESC ],
+					'default' => SORT_DESC,
+					'label' => 'Template',
+				],
+				'name' => [
+					'asc' => [ "$modelTable.name" => SORT_ASC ],
+					'desc' => [ "$modelTable.name" => SORT_DESC ],
+					'default' => SORT_DESC,
+					'label' => 'Name'
+				],
+				'slug' => [
+					'asc' => [ "$modelTable.slug" => SORT_ASC ],
+					'desc' => [ "$modelTable.slug" => SORT_DESC ],
+					'default' => SORT_DESC,
+					'label' => 'Slug'
+				],
+	            'type' => [
+	                'asc' => [ "$modelTable.type" => SORT_ASC ],
+	                'desc' => [ "$modelTable.type" => SORT_DESC ],
+	                'default' => SORT_DESC,
+	                'label' => 'Type'
+	            ],
+	            'icon' => [
+	                'asc' => [ "$modelTable.icon" => SORT_ASC ],
+	                'desc' => [ "$modelTable.icon" => SORT_DESC ],
+	                'default' => SORT_DESC,
+	                'label' => 'Icon'
+	            ],
+				'title' => [
+					'asc' => [ "$modelTable.title" => SORT_ASC ],
+					'desc' => [ "$modelTable.title" => SORT_DESC ],
+					'default' => SORT_DESC,
+					'label' => 'Title'
+				],
+				'status' => [
+					'asc' => [ "$modelTable.status" => SORT_ASC ],
+					'desc' => [ "$modelTable.status" => SORT_DESC ],
+					'default' => SORT_DESC,
+					'label' => 'Status'
+				],
+				'visibility' => [
+					'asc' => [ "$modelTable.visibility" => SORT_ASC ],
+					'desc' => [ "$modelTable.visibility" => SORT_DESC ],
+					'default' => SORT_DESC,
+					'label' => 'Visibility'
+				],
+				'order' => [
+					'asc' => [ "$modelTable.order" => SORT_ASC ],
+					'desc' => [ "$modelTable.order" => SORT_DESC ],
+					'default' => SORT_DESC,
+					'label' => 'Order'
+				],
+				'pinned' => [
+					'asc' => [ "$modelTable.pinned" => SORT_ASC ],
+					'desc' => [ "$modelTable.pinned" => SORT_DESC ],
+					'default' => SORT_DESC,
+					'label' => 'Pinned'
+				],
+				'featured' => [
+					'asc' => [ "$modelTable.featured" => SORT_ASC ],
+					'desc' => [ "$modelTable.featured" => SORT_DESC ],
+					'default' => SORT_DESC,
+					'label' => 'Featured'
+				],
+				'popular' => [
+					'asc' => [ "$modelTable.popular" => SORT_ASC ],
+					'desc' => [ "$modelTable.popular" => SORT_DESC ],
+					'default' => SORT_DESC,
+					'label' => 'Popular'
+				],
+				'cdate' => [
+					'asc' => [ "$modelTable.createdAt" => SORT_ASC ],
+					'desc' => [ "$modelTable.createdAt" => SORT_DESC ],
+					'default' => SORT_DESC,
+					'label' => 'Created At'
+				],
+				'udate' => [
+					'asc' => [ "$modelTable.modifiedAt" => SORT_ASC ],
+					'desc' => [ "$modelTable.modifiedAt" => SORT_DESC ],
+					'default' => SORT_DESC,
+					'label' => 'Updated At'
+				],
+				'pdate' => [
+					'asc' => [ "$contentTable.publishedAt" => SORT_ASC ],
+					'desc' => [ "$contentTable.publishedAt" => SORT_DESC ],
+					'default' => SORT_DESC,
+					'label' => 'Published At'
+				]
+			],
+			'defaultOrder' => $defaultSort
+		]);
+
+		if( !isset( $config[ 'sort' ] ) ) {
+
+			$config[ 'sort' ] = $sort;
+		}
+
+		// Query ------------
+
+		if( !isset( $config[ 'query' ] ) ) {
+
+			$config[ 'query' ] = $modelClass::queryWithHasOne();
+		}
+
+		// Filters ----------
+
+		// Searching --------
+
+		// Reporting --------
+
+		// Result -----------
+
+		return parent::getPage( $config );
+	}
+
 	public function getPublicPage( $config = [] ) {
 
 		$config[ 'route' ] = isset( $config[ 'route' ] ) ? $config[ 'route' ] : 'topic';
@@ -90,9 +247,21 @@ class TopicService extends \cmsgears\cms\common\services\base\ContentService imp
 		return parent::getPublicPage( $config );
 	}
 
+	public function getPageByForumId( $forumId, $config = [] ) {
+
+		$config[ 'conditions'][ 'forumId' ] = $forumId;
+
+		return $this->getPage( $config );
+	}
+
 	// Read ---------------
 
-	// Read - Models ---
+	public function getByForumId( $forumId ) {
+
+		$modelClass	= self::$modelClass;
+
+		return $modelClass::findByBankId( $forumId );
+	}
 
 	// Read - Lists ----
 
@@ -100,24 +269,22 @@ class TopicService extends \cmsgears\cms\common\services\base\ContentService imp
 
 	// Read - Others ---
 
+	public function getEmail( $model ) {
+
+		return isset( $model->userId ) ? $model->user->email : $model->creator->email;
+	}
+
 	// Create -------------
 
 	public function create( $model, $config = [] ) {
 
-		$avatar = isset( $config[ 'avatar' ] ) ? $config[ 'avatar' ] : null;
-
 		$modelClass = static::$modelClass;
+
+		$avatar = isset( $config[ 'avatar' ] ) ? $config[ 'avatar' ] : null;
 
 		// Save Files
 		$this->fileService->saveFiles( $model, [ 'avatarId' => $avatar ] );
 
-		// Default Private
-		$model->visibility = $model->visibility ?? $modelClass::VISIBILITY_PRIVATE;
-
-		// Default New
-		$model->status = $model->status ?? $modelClass::STATUS_NEW;
-
-		// Create Model
 		return parent::create( $model, $config );
 	}
 
@@ -126,13 +293,16 @@ class TopicService extends \cmsgears\cms\common\services\base\ContentService imp
 		$admin = isset( $config[ 'admin' ] ) ? $config[ 'admin' ] : false;
 
 		$modelClass = static::$modelClass;
+		$parentType	= static::$parentType;
 
-		$content 	= isset( $config[ 'content' ] ) ? $config[ 'content' ] : new ModelContent();
-		$publish	= isset( $config[ 'publish' ] ) ? $config[ 'publish' ] : false;
-		$banner 	= isset( $config[ 'banner' ] ) ? $config[ 'banner' ] : null;
-		$mbanner 	= isset( $config[ 'mbanner' ] ) ? $config[ 'mbanner' ] : null;
-		$video 		= isset( $config[ 'video' ] ) ? $config[ 'video' ] : null;
-		$gallery	= isset( $config[ 'gallery' ] ) ? $config[ 'gallery' ] : null;
+		$content		= isset( $config[ 'content' ] ) ? $config[ 'content' ] : new ModelContent();
+		$publish		= isset( $config[ 'publish' ] ) ? $config[ 'publish' ] : false;
+		$banner			= isset( $config[ 'banner' ] ) ? $config[ 'banner' ] : null;
+		$mbanner		= isset( $config[ 'mbanner' ] ) ? $config[ 'mbanner' ] : null;
+		$video			= isset( $config[ 'video' ] ) ? $config[ 'video' ] : null;
+		$mvideo			= isset( $config[ 'mvideo' ] ) ? $config[ 'mvideo' ] : null;
+		$gallery		= isset( $config[ 'gallery' ] ) ? $config[ 'gallery' ] : null;
+		$mappingsType	= isset( $config[ 'mappingsType' ] ) ? $config[ 'mappingsType' ] : static::$parentType;
 
 		$galleryService			= Yii::$app->factory->get( 'galleryService' );
 		$modelContentService	= Yii::$app->factory->get( 'modelContentService' );
@@ -145,39 +315,51 @@ class TopicService extends \cmsgears\cms\common\services\base\ContentService imp
 
 		try {
 
+			// Copy Template
+			$config[ 'template' ] = $content->template;
+
+			$this->copyTemplate( $model, $config );
+
 			// Create Model
 			$model = $this->create( $model, $config );
 
 			// Create Gallery
 			if( isset( $gallery ) ) {
 
-				$gallery->type		= static::$parentType;
-				$gallery->status	= $galleryClass::STATUS_ACTIVE;
 				$gallery->siteId	= Yii::$app->core->siteId;
+				$gallery->type		= $parentType;
+				$gallery->status	= $galleryClass::STATUS_ACTIVE;
+				$gallery->name		= empty( $gallery->name ) ? $model->name : $gallery->name;
 
 				$gallery = $galleryService->create( $gallery );
 			}
 			else {
 
 				$gallery = $galleryService->createByParams([
-					'type' => static::$parentType, 'status' => $galleryClass::STATUS_ACTIVE,
-					'name' => $model->name, 'title' => $model->title,
-					'siteId' => Yii::$app->core->siteId
+					'siteId' => Yii::$app->core->siteId,
+					'type' => $parentType, 'status' => $galleryClass::STATUS_ACTIVE,
+					'name' => $model->name, 'title' => $model->title
 				]);
 			}
 
 			// Create and attach model content
 			$modelContentService->create( $content, [
-				'parent' => $model, 'parentType' => static::$parentType,
+				'parent' => $model, 'parentType' => $parentType,
 				'publish' => $publish,
-				'banner' => $banner, 'mbanner' => $mbanner, 'video' => $video, 'gallery' => $gallery
+				'banner' => $banner, 'mbanner' => $mbanner,
+				'video' => $video, 'mvideo' => $mvideo,
+				'gallery' => $gallery
 			]);
 
 			// Bind categories
-			$modelCategoryService->bindCategories( $model->id, static::$parentType, [ 'binder' => 'CategoryBinder' ] );
+			$modelCategoryService->bindModels( $model->id, $mappingsType, [ 'binder' => 'CategoryBinder' ] );
 
 			// Bind tags
-			$modelTagService->bindTags( $model->id, static::$parentType, [ 'binder' => 'TagBinder' ] );
+			$modelTagService->bindTags( $model->id, $mappingsType, [ 'binder' => 'TagBinder' ] );
+
+			// Default Settings
+			$this->metaService->initByNameType( $model->id, CoreGlobal::META_RECEIVE_EMAIL, 'notification', TopicMeta::VALUE_TYPE_FLAG );
+			$this->metaService->initByNameType( $model->id, CoreGlobal::META_RECEIVE_EMAIL, 'reminder', TopicMeta::VALUE_TYPE_FLAG );
 
 			$transaction->commit();
 		}
@@ -200,13 +382,15 @@ class TopicService extends \cmsgears\cms\common\services\base\ContentService imp
 		$modelClass = static::$modelClass;
 		$parentType	= static::$parentType;
 
-		$content 	= isset( $config[ 'content' ] ) ? $config[ 'content' ] : new ModelContent();
-		$publish	= isset( $config[ 'publish' ] ) ? $config[ 'publish' ] : false;
-		$banner 	= isset( $config[ 'banner' ] ) ? $config[ 'banner' ] : null;
-		$mbanner 	= isset( $config[ 'mbanner' ] ) ? $config[ 'mbanner' ] : null;
-		$video 		= isset( $config[ 'video' ] ) ? $config[ 'video' ] : null;
-		$gallery	= isset( $config[ 'gallery' ] ) ? $config[ 'gallery' ] : null;
-		$adminLink	= isset( $config[ 'adminLink' ] ) ? $config[ 'adminLink' ] : 'forum/topic/review';
+		$content		= isset( $config[ 'content' ] ) ? $config[ 'content' ] : new ModelContent();
+		$publish		= isset( $config[ 'publish' ] ) ? $config[ 'publish' ] : false;
+		$banner			= isset( $config[ 'banner' ] ) ? $config[ 'banner' ] : null;
+		$mbanner		= isset( $config[ 'mbanner' ] ) ? $config[ 'mbanner' ] : null;
+		$video			= isset( $config[ 'video' ] ) ? $config[ 'video' ] : null;
+		$mvideo			= isset( $config[ 'mvideo' ] ) ? $config[ 'mvideo' ] : null;
+		$gallery		= isset( $config[ 'gallery' ] ) ? $config[ 'gallery' ] : null;
+		$mappingsType	= isset( $config[ 'mappingsType' ] ) ? $config[ 'mappingsType' ] : static::$parentType;
+		$adminLink		= isset( $config[ 'adminLink' ] ) ? $config[ 'adminLink' ] : 'forum/topic/review';
 
 		$galleryService			= Yii::$app->factory->get( 'galleryService' );
 		$modelContentService	= Yii::$app->factory->get( 'modelContentService' );
@@ -221,24 +405,30 @@ class TopicService extends \cmsgears\cms\common\services\base\ContentService imp
 
 		try {
 
+			// Copy Template
+			$config[ 'template' ] = $content->template;
+
+			$this->copyTemplate( $model, $config );
+
 			// Create Model
 			$model = $this->create( $model, $config );
 
 			// Create Gallery
 			if( isset( $gallery ) ) {
 
+				$gallery->siteId	= Yii::$app->core->siteId;
 				$gallery->type		= $parentType;
 				$gallery->status	= $galleryClass::STATUS_ACTIVE;
-				$gallery->siteId	= Yii::$app->core->siteId;
+				$gallery->name		= empty( $gallery->name ) ? $model->name : $gallery->name;
 
 				$gallery = $galleryService->create( $gallery );
 			}
 			else {
 
 				$gallery = $galleryService->createByParams([
+					'siteId' => Yii::$app->core->siteId,
 					'type' => $parentType, 'status' => $galleryClass::STATUS_ACTIVE,
-					'name' => $model->name, 'title' => $model->title,
-					'siteId' => Yii::$app->core->siteId
+					'name' => $model->name, 'title' => $model->title
 				]);
 			}
 
@@ -246,14 +436,20 @@ class TopicService extends \cmsgears\cms\common\services\base\ContentService imp
 			$modelContentService->create( $content, [
 				'parent' => $model, 'parentType' => $parentType,
 				'publish' => $publish,
-				'banner' => $banner, 'mbanner' => $mbanner, 'video' => $video, 'gallery' => $gallery
+				'banner' => $banner, 'mbanner' => $mbanner,
+				'video' => $video, 'mvideo' => $mvideo,
+				'gallery' => $gallery
 			]);
 
 			// Bind categories
-			$modelCategoryService->bindCategories( $model->id, $parentType, [ 'binder' => 'CategoryBinder' ] );
+			$modelCategoryService->bindModels( $model->id, $mappingsType, [ 'binder' => 'CategoryBinder' ] );
 
 			// Bind tags
-			$modelTagService->bindTags( $model->id, $parentType, [ 'binder' => 'TagBinder' ] );
+			$modelTagService->bindTags( $model->id, $mappingsType, [ 'binder' => 'TagBinder' ] );
+
+			// Default Settings
+			$this->metaService->initByNameType( $model->id, CoreGlobal::META_RECEIVE_EMAIL, 'notification', TopicMeta::VALUE_TYPE_FLAG );
+			$this->metaService->initByNameType( $model->id, CoreGlobal::META_RECEIVE_EMAIL, 'reminder', TopicMeta::VALUE_TYPE_FLAG );
 
 			$transaction->commit();
 
@@ -268,20 +464,7 @@ class TopicService extends \cmsgears\cms\common\services\base\ContentService imp
 
 		if( $registered ) {
 
-			// Notify Site Admin
-			if( $notify ) {
-
-				$this->notifyAdmin( $model, [
-					'template' => ForumGlobal::TPL_NOTIFY_TOPIC_NEW,
-					'adminLink' => "{$adminLink}?id={$model->id}"
-				]);
-			}
-
-			// Email Album Admin
-			if( $mail ) {
-
-				Yii::$app->cmsMailer->sendRegisterTopicMail( $model );
-			}
+			// Post Registration
 		}
 
 		return $model;
@@ -293,26 +476,40 @@ class TopicService extends \cmsgears\cms\common\services\base\ContentService imp
 
 		$admin = isset( $config[ 'admin' ] ) ? $config[ 'admin' ] : false;
 
-		$content 	= isset( $config[ 'content' ] ) ? $config[ 'content' ] : null;
-		$publish	= isset( $config[ 'publish' ] ) ? $config[ 'publish' ] : false;
-		$avatar 	= isset( $config[ 'avatar' ] ) ? $config[ 'avatar' ] : null;
-		$banner 	= isset( $config[ 'banner' ] ) ? $config[ 'banner' ] : null;
-		$mbanner 	= isset( $config[ 'mbanner' ] ) ? $config[ 'mbanner' ] : null;
-		$video 		= isset( $config[ 'video' ] ) ? $config[ 'video' ] : null;
-		$gallery	= isset( $config[ 'gallery' ] ) ? $config[ 'gallery' ] : null;
+		$content		= isset( $config[ 'content' ] ) ? $config[ 'content' ] : null;
+		$publish		= isset( $config[ 'publish' ] ) ? $config[ 'publish' ] : false;
+		$avatar			= isset( $config[ 'avatar' ] ) ? $config[ 'avatar' ] : null;
+		$banner			= isset( $config[ 'banner' ] ) ? $config[ 'banner' ] : null;
+		$mbanner		= isset( $config[ 'mbanner' ] ) ? $config[ 'mbanner' ] : null;
+		$video			= isset( $config[ 'video' ] ) ? $config[ 'video' ] : null;
+		$mvideo			= isset( $config[ 'mvideo' ] ) ? $config[ 'mvideo' ] : null;
+		$gallery		= isset( $config[ 'gallery' ] ) ? $config[ 'gallery' ] : null;
+		$mappingsType	= isset( $config[ 'mappingsType' ] ) ? $config[ 'mappingsType' ] : static::$parentType;
 
 		$attributes	= isset( $config[ 'attributes' ] ) ? $config[ 'attributes' ] : [
-			'parentId', 'avatarId', 'name', 'slug', 'icon', 'texture',
+			'name', 'slug', 'icon', 'texture',
 			'title', 'description', 'visibility', 'content'
 		];
 
 		if( $admin ) {
 
 			$attributes	= ArrayHelper::merge( $attributes, [
-				'status', 'order', 'pinned', 'featured', 'comments'
+				'status', 'order', 'pinned', 'featured', 'popular', 'score'
 			]);
 		}
 
+		// Copy Template
+		if( isset( $content ) ) {
+
+			$config[ 'template' ] = $content->template;
+
+			if( $this->copyTemplate( $model, $config ) ) {
+
+				$attributes[] = 'data';
+			}
+		}
+
+		// Services
 		$galleryService			= Yii::$app->factory->get( 'galleryService' );
 		$modelContentService	= Yii::$app->factory->get( 'modelContentService' );
 		$modelCategoryService	= Yii::$app->factory->get( 'modelCategoryService' );
@@ -331,19 +528,37 @@ class TopicService extends \cmsgears\cms\common\services\base\ContentService imp
 		if( isset( $content ) ) {
 
 			$modelContentService->update( $content, [
-				'publish' => $publish, 'banner' => $banner, 'mbanner' => $mbanner, 'video' => $video, 'gallery' => $gallery
+				'publish' => $publish,
+				'banner' => $banner, 'mbanner' => $mbanner,
+				'video' => $video, 'mvideo' => $mvideo,
+				'gallery' => $gallery
 			]);
 		}
 
 		// Bind categories
-		$modelCategoryService->bindCategories( $model->id, static::$parentType, [ 'binder' => 'CategoryBinder' ] );
+		$modelCategoryService->bindModels( $model->id, $mappingsType, [ 'binder' => 'CategoryBinder' ] );
 
 		// Bind tags
-		$modelTagService->bindTags( $model->id, static::$parentType, [ 'binder' => 'TagBinder' ] );
+		$modelTagService->bindTags( $model->id, $mappingsType, [ 'binder' => 'TagBinder' ] );
 
-		return parent::update( $model, [
+		// Model Checks
+		$oldStatus = $model->getOldAttribute( 'status' );
+
+		$model = parent::update( $model, [
 			'attributes' => $attributes
 		]);
+
+		// Check status change and notify User
+		if( isset( $model->userId ) && $oldStatus != $model->status ) {
+
+			$config[ 'users' ] = [ $model->userId ];
+
+			$config[ 'data' ][ 'message' ] = 'Topic status changed.';
+
+			$this->checkStatusChange( $model, $oldStatus, $config );
+		}
+
+		return $model;
 	}
 
 	// Delete -------------
@@ -361,10 +576,10 @@ class TopicService extends \cmsgears\cms\common\services\base\ContentService imp
 				// Delete metas
 				$this->metaService->deleteByModelId( $model->id );
 
-				// Delete files
-				$this->fileService->deleteFiles( $model->files );
+				// Delete Files
+				$this->fileService->deleteMultiple( [ $model->avatar ] );
 
-				// Delete Model Content
+				// Delete Model Content, Gallery, Banner, Video
 				Yii::$app->factory->get( 'modelContentService' )->delete( $model->modelContent );
 
 				// Delete Category Mappings
@@ -373,14 +588,8 @@ class TopicService extends \cmsgears\cms\common\services\base\ContentService imp
 				// Delete Tag Mappings
 				Yii::$app->factory->get( 'modelTagService' )->deleteByParent( $model->id, static::$parentType );
 
-				// Delete Option Mappings
-				Yii::$app->factory->get( 'modelOptionService' )->deleteByParent( $model->id, static::$parentType );
-
-				// Delete Comments
-				Yii::$app->factory->get( 'modelCommentService' )->deleteByParent( $model->id, static::$parentType );
-
 				// Delete Followers
-				Yii::$app->factory->get( 'pageFollowerService' )->deleteByModelId( $model->id );
+				Yii::$app->factory->get( 'topicFollowerService' )->deleteByModelId( $model->id );
 
 				$transaction->commit();
 
@@ -399,14 +608,21 @@ class TopicService extends \cmsgears\cms\common\services\base\ContentService imp
 		return parent::delete( $model, $config );
 	}
 
+	public function deleteByForumId( $forumId ) {
+
+		$topics = $this->getByForumId( $forumId );
+
+		foreach( $topics as $topic ) {
+
+			$this->delete( $topic );
+		}
+	}
+
 	// Bulk ---------------
 
 	protected function applyBulk( $model, $column, $action, $target, $config = [] ) {
 
-		$user = $model->creator;
-
-		$config[ 'direct' ]	= isset( $config[ 'direct' ] ) ? $config[ 'direct' ] : false;
-		$config[ 'users' ]	= isset( $config[ 'users' ] ) ? $config[ 'users' ] : [ $user->id ];
+		$config[ 'users' ] = isset( $config[ 'users' ] ) ? $config[ 'users' ] : ( isset( $model->userId ) ? [ $model->userId ] : [] );
 
 		return parent::applyBulk( $model, $column, $action, $target, $config );
 	}
@@ -421,7 +637,7 @@ class TopicService extends \cmsgears\cms\common\services\base\ContentService imp
 
 	// CMG parent classes --------------------
 
-	// AlbumService --------------------------
+	// TopicService --------------------------
 
 	// Data Provider ------
 

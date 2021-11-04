@@ -21,14 +21,21 @@ class ForumTables extends DbTables {
 
 	// Entities -------------
 
+	const TABLE_FORUM = 'cmg_forum';
+
     const TABLE_TOPIC = 'cmg_forum_topic';
 
 	// Resources ------------
 
-	const TABLE_TOPIC_META	= 'cmg_forum_topic_meta';
-	const TABLE_TOPIC_REPLY	= 'cmg_forum_topic_reply';
+	const TABLE_FORUM_META = 'cmg_forum_meta';
+
+	const TABLE_TOPIC_META = 'cmg_forum_topic_meta';
+
+	const TABLE_TOPIC_REPLY = 'cmg_forum_topic_reply';
 
 	// Mappers --------------
+
+	const TABLE_FORUM_FOLLOWER = 'cmg_forum_follower';
 
 	const TABLE_TOPIC_FOLLOWER = 'cmg_forum_topic_follower';
 
